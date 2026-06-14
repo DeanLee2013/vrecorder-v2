@@ -9,11 +9,20 @@
 import AVFoundation
 import Speech
 
+/// The sink the tap feeds. SFSpeechAudioBufferRecognitionRequest conforms; tests
+/// inject a recording mock so the append→VAD→endAudio→rollover flow is testable.
+protocol AudioBufferSink: AnyObject {
+    func append(_ buffer: AVAudioPCMBuffer)
+    func endAudio()
+}
+
+extension SFSpeechAudioBufferRecognitionRequest: AudioBufferSink {}
+
 /// `@unchecked Sendable`: all mutable state is guarded by `lock`, so the render
 /// thread and the main actor can both touch it safely.
 final class AudioTapBridge: @unchecked Sendable {
     private let lock = NSLock()
-    private var request: SFSpeechAudioBufferRecognitionRequest?
+    private var request: (any AudioBufferSink)?
     private var hadSpeech = false
     private var silentSeconds: Double = 0
 
@@ -31,18 +40,19 @@ final class AudioTapBridge: @unchecked Sendable {
     private let rollover = PCMRollover(cap: 24)
 
     /// Install/replace the active request (main actor). Replays any audio captured
-    /// during the rotation gap, then resets VAD state for the new segment.
-    func setRequest(_ newRequest: SFSpeechAudioBufferRecognitionRequest?) {
+    /// during the rotation gap THROUGH the VAD path, so a complete short utterance
+    /// inside the gap still triggers endAudio() and segments correctly instead of
+    /// merging into the next one (audit-G4 #1). Resets VAD state for the segment.
+    func setRequest(_ newRequest: (any AudioBufferSink)?) {
         lock.lock()
         request = newRequest
-        if let newRequest {
-            for buffered in rollover.drain() { newRequest.append(buffered) }
-        } else {
-            _ = rollover.drain()   // dropping the request also clears the ring
-        }
         hadSpeech = false
         silentSeconds = 0
+        let replay = rollover.drain()        // always clear; only replay if installing
         lock.unlock()
+        guard newRequest != nil else { return }
+        // Re-feed through append() (not append-direct) so VAD/endAudio still apply.
+        for buffered in replay { append(buffered) }
     }
 
     /// Called from the render thread for every captured buffer.
