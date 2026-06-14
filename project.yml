@@ -39,6 +39,12 @@ targets:
         INFOPLIST_KEY_UIStatusBarStyle: UIStatusBarStyleLightContent
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         TARGETED_DEVICE_FAMILY: "1"
+      configs:
+        # Never ship the dev key resource in a distributable (Release) bundle —
+        # it stays a DEBUG-only convenience (audit-3 #4). APIKeyBootstrap also
+        # #if DEBUG-gates the read; this removes the file from the bundle too.
+        Release:
+          EXCLUDED_SOURCE_FILE_NAMES: "openai-key.txt"
 
   vrecorderTests:
     type: bundle.unit-test

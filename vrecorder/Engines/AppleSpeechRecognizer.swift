@@ -16,6 +16,7 @@ final class AppleSpeechRecognizer: SpeechRecognizing {
         supportedLocales: [Locale(identifier: "zh-CN"), Locale(identifier: "en-US")])
 
     private let audioEngine = AVAudioEngine()
+    private let tapBridge = AudioTapBridge()
     private var request: SFSpeechAudioBufferRecognitionRequest?
     private var task: SFSpeechRecognitionTask?
     private var recognizer: SFSpeechRecognizer?
@@ -58,8 +59,9 @@ final class AppleSpeechRecognizer: SpeechRecognizing {
 
         let input = audioEngine.inputNode
         let format = input.outputFormat(forBus: 0)
-        input.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, _ in
-            self?.request?.append(buffer)
+        // The tap appends to the Sendable bridge only — never to main-actor state.
+        input.installTap(onBus: 0, bufferSize: 1024, format: format) { [tapBridge] buffer, _ in
+            tapBridge.append(buffer)
         }
         audioEngine.prepare()
         try audioEngine.start()
@@ -67,11 +69,14 @@ final class AppleSpeechRecognizer: SpeechRecognizing {
     }
 
     /// Begin recognizing the next utterance on the still-running audio engine.
+    /// The bridge's VAD calls `endAudio()` on a pause → the recognizer emits a
+    /// final → we rotate here to the next segment.
     private func startSegment() {
         guard running, let recognizer else { return }
         let request = SFSpeechAudioBufferRecognitionRequest()
         request.shouldReportPartialResults = true
         self.request = request
+        tapBridge.setRequest(request)
         task = recognizer.recognitionTask(with: request) { [weak self] result, error in
             Task { @MainActor in
                 guard let self, self.running else { return }
@@ -110,6 +115,7 @@ final class AppleSpeechRecognizer: SpeechRecognizing {
         running = false
         audioEngine.inputNode.removeTap(onBus: 0)
         if audioEngine.isRunning { audioEngine.stop() }
+        tapBridge.setRequest(nil)
         request?.endAudio()
         task?.cancel()
         task = nil

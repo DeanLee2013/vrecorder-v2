@@ -33,10 +33,12 @@ private struct MockTranslator: TranslationEngine {
 @MainActor
 @Suite("Pipeline flow")
 struct PipelineFlowTests {
+    /// Yield-based wait: returns the instant the condition holds (no fixed
+    /// sleep / no multi-second stall — audit-3 #6). Bounded so a hang fails fast.
     private func waitUntil(_ cond: @MainActor () -> Bool) async {
-        for _ in 0..<2000 {
+        for _ in 0..<100_000 {
             if cond() { return }
-            try? await Task.sleep(nanoseconds: 1_000_000)
+            await Task.yield()
         }
     }
 

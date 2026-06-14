@@ -134,7 +134,10 @@ final class LiveSessionModel {
     /// and commits in source order.
     private func startTranslationQueue(gen: Int) {
         guard let translator else { return }
-        let (stream, cont) = AsyncStream<String>.makeStream()
+        // Bounded buffer: if translation falls behind speech, drop the oldest
+        // pending finals deterministically rather than growing unboundedly
+        // (audit-3 #3). A live interpreter values latest speech over backlog.
+        let (stream, cont) = AsyncStream<String>.makeStream(bufferingPolicy: .bufferingNewest(8))
         finalsContinuation = cont
         translationConsumer = Task { [weak self] in
             for await chinese in stream {
