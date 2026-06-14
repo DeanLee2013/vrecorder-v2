@@ -51,3 +51,23 @@ Before setting a feature to `PLANNED`, fill in these fields in a sub-section und
 
 | #   | Summary | Area | Priority | Status | Notes |
 | --- | ------- | ---- | -------- | ------ | ----- |
+| 1   | MVP 同传管线骨架（同传屏/设置屏 + 本地STT + OpenAI翻译 + Keychain key） | pipeline/ui | High | DONE | Scaffold, retro-registered outside gates 1-2 (course demo). Mirror: no. Pipeline-translate leg verified against live OpenAI; on-device STT needs device verify (Gate 5 deferred). |
+
+### Feature #1 — Notes (retro)
+
+Built as the initial environment/scaffold, not through the formal 6-gate flow
+(no Gate-1 plan / Gate-2 plan audit — code preceded planning here, recorded
+honestly). What exists:
+
+- **Design-faithful UI**: LiveScreen (ink/violet split, water surface, mic
+  button), SettingsScreen (light grouped list). From `design/`.
+- **Engine abstraction**: `SpeechRecognizing` / `TranslationEngine` protocols;
+  `AppleSpeechRecognizer` (on-device) + `OpenAITranslationEngine` (cloud).
+- **Pipeline**: mic → 中文 partial/final → per-final OpenAI translate → English
+  panel; demo simulator fallback (no network).
+- **Secrets**: Keychain store, DEBUG-seeded from `config/openai-key.txt`.
+
+Verification done: 9 unit tests green; live OpenAI translation confirmed
+(`重庆火锅…` → English). **Outstanding (future gate 5)**: on-device mic STT
+end-to-end on a real device; settings persistence + TTS (Stage 3) tracked as
+new features that WILL go through gates 1-6.
