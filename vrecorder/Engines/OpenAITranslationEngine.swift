@@ -37,6 +37,7 @@ struct OpenAITranslationEngine: TranslationEngine {
             // a distinct provider error, not necessarily a bad key (audit-G4r2 #4).
             case 401: throw PipelineError.invalidAPIKey
             case 403: throw PipelineError.providerError("forbidden (403)")
+            case 408, 504: throw PipelineError.timeout     // request/gateway timeout (bug #8)
             case 429: throw PipelineError.rateLimited      // rate or quota
             default:  throw PipelineError.providerError("HTTP \(http.statusCode)")
             }
