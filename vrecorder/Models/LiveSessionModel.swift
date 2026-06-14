@@ -1,10 +1,12 @@
 //  LiveSessionModel.swift
 //  Purpose: Observable session state for the live-interpretation screen. Runs the
-//  STT→translate→display pipeline (or a no-network demo simulator). Correctness
-//  guards: a session-generation token invalidates every stale async path on
-//  stop/restart (#3); translation tasks are owned, cancelled on stop, and
-//  committed in source order (#4); audio-session interruptions stop the session
-//  (#5); teardown always deactivates the audio session (#6). rules/50 §2-4.
+//  STT→translate→display pipeline (or a no-network demo simulator).
+//  Correctness guards: a session-generation token invalidates stale async paths
+//  on stop/restart (#3); translations run through ONE bounded sequential queue so
+//  tasks don't accumulate and results commit in source order (#4, audit-2 High);
+//  audio interruptions stop the session (#5); teardown always deactivates the
+//  audio session (#6). Engines are referenced via protocols so they're mockable.
+//  rules/50 §2-4.
 
 import SwiftUI
 
@@ -17,26 +19,22 @@ final class LiveSessionModel {
     private(set) var errorMessage: String?
 
     private let maxLines = 3
-    private let recognizer: AppleSpeechRecognizer?
-    private let translator: TranslationEngine?
+    private let recognizer: (any SpeechRecognizing)?
+    private let translator: (any TranslationEngine)?
     private let audio: AudioSessionController?
 
     /// Bumped on every start/stop; stale async work compares against it and bails.
     private var generation = 0
     private var sttTask: Task<Void, Never>?
-    private var translationTasks: [Task<Void, Never>] = []
-    private var demoTasks: [Task<Void, Never>] = []
-
-    // Ordered translation commit: each final gets a seq; results commit in order.
-    private var nextAssignSeq = 0
-    private var nextCommitSeq = 0
-    private var pendingTranslations: [Int: String] = [:]
+    private var translationConsumer: Task<Void, Never>?
+    private var finalsContinuation: AsyncStream<String>.Continuation?
+    private var demoTask: Task<Void, Never>?
 
     private let sourceLocale = Locale(identifier: "zh-CN")
     private let targetLocale = Locale(identifier: "en-US")
 
-    init(recognizer: AppleSpeechRecognizer? = nil,
-         translator: TranslationEngine? = nil,
+    init(recognizer: (any SpeechRecognizing)? = nil,
+         translator: (any TranslationEngine)? = nil,
          audio: AudioSessionController? = nil) {
         self.recognizer = recognizer
         self.translator = translator
@@ -52,28 +50,36 @@ final class LiveSessionModel {
     func clearError() { errorMessage = nil }
 
     /// Authoritative teardown. Bumps generation so any in-flight async path bails,
-    /// cancels all owned tasks, releases the audio session. Safe to call repeatedly.
+    /// cancels owned tasks, closes the translation queue, releases the audio
+    /// session. Safe to call repeatedly.
     func stop() {
         generation += 1
         listening = false
         recognizer?.stop()
         sttTask?.cancel(); sttTask = nil
-        translationTasks.forEach { $0.cancel() }; translationTasks.removeAll()
-        demoTasks.forEach { $0.cancel() }; demoTasks.removeAll()
-        pendingTranslations.removeAll()
+        finalsContinuation?.finish(); finalsContinuation = nil
+        translationConsumer?.cancel(); translationConsumer = nil
+        demoTask?.cancel(); demoTask = nil
         audio?.deactivate()
     }
 
     // MARK: - Event ingestion
 
+    /// Push a line into a panel. If the active (trailing) line is a partial, the
+    /// incoming line continues that same segment — reuse its id so SwiftUI
+    /// animates partial→final in place rather than as a remove/insert (audit Low).
     private func push(into lines: inout [TranscriptLine], _ line: TranscriptLine) {
+        var incoming = line
         var kept = lines
-            .filter { $0.status != .partial }
-            .map { l -> TranscriptLine in
-                var l = l; if l.status == .final { l.status = .history }; return l
-            }
+        if let last = kept.last, last.status == .partial {
+            incoming = TranscriptLine(id: last.id, status: line.status, text: line.text)
+            kept.removeLast()
+        }
+        kept = kept.map { l -> TranscriptLine in
+            var l = l; if l.status == .final { l.status = .history }; return l
+        }
         if kept.count > maxLines - 1 { kept.removeFirst(kept.count - (maxLines - 1)) }
-        kept.append(line)
+        kept.append(incoming)
         lines = kept
     }
 
@@ -87,8 +93,8 @@ final class LiveSessionModel {
         guard hasPipeline, let recognizer else { startDemo(); return }
         generation += 1
         let gen = generation
-        nextAssignSeq = 0; nextCommitSeq = 0; pendingTranslations.removeAll()
         listening = true
+        startTranslationQueue(gen: gen)
         audio?.onEvent = { [weak self] event in
             switch event {
             case .interruptionBegan, .routeLost: self?.stop()
@@ -98,7 +104,7 @@ final class LiveSessionModel {
         sttTask = Task { [weak self] in
             guard let self else { return }
             do {
-                try await AppleSpeechRecognizer.requestAuthorization()
+                try await recognizer.requestAuthorization()
                 guard gen == self.generation, !Task.isCancelled else { return }
                 try self.audio?.activate()
                 guard gen == self.generation, !Task.isCancelled else { self.audio?.deactivate(); return }
@@ -110,7 +116,7 @@ final class LiveSessionModel {
             } catch {
                 self.fail(error, gen: gen)
             }
-            if gen == self.generation { self.stop() }   // normal completion → full teardown
+            if gen == self.generation { self.stop() }
         }
     }
 
@@ -120,35 +126,28 @@ final class LiveSessionModel {
             pushA(.init(status: .partial, text: t))
         case .final(let t):
             pushA(.init(status: .final, text: t))
-            translate(t, gen: generation, seq: nextAssignSeq)
-            nextAssignSeq += 1
+            finalsContinuation?.yield(t)          // enqueue for ordered translation
         }
     }
 
-    private func translate(_ chinese: String, gen: Int, seq: Int) {
+    /// One consumer translates finals sequentially (bounded — no task pile-up)
+    /// and commits in source order.
+    private func startTranslationQueue(gen: Int) {
         guard let translator else { return }
-        let task = Task { [weak self] in
-            guard let self else { return }
-            do {
-                let english = try await translator.translate(chinese, from: sourceLocale, to: targetLocale)
-                guard gen == self.generation, !Task.isCancelled else { return }
-                self.commit(english, seq: seq)
-            } catch {
-                guard gen == self.generation, !Task.isCancelled else { return }
-                self.fail(error, gen: gen)
+        let (stream, cont) = AsyncStream<String>.makeStream()
+        finalsContinuation = cont
+        translationConsumer = Task { [weak self] in
+            for await chinese in stream {
+                guard let self, gen == self.generation, !Task.isCancelled else { continue }
+                do {
+                    let english = try await translator.translate(chinese, from: self.sourceLocale, to: self.targetLocale)
+                    guard gen == self.generation, !Task.isCancelled else { continue }
+                    if !english.isEmpty { self.pushB(.init(status: .final, text: english)) }
+                } catch {
+                    guard gen == self.generation else { continue }
+                    self.fail(error, gen: gen)
+                }
             }
-        }
-        translationTasks.append(task)
-    }
-
-    /// Commit translations in source order so out-of-order completions don't
-    /// scramble the counterpart panel.
-    private func commit(_ english: String, seq: Int) {
-        pendingTranslations[seq] = english
-        while let text = pendingTranslations[nextCommitSeq] {
-            if !text.isEmpty { pushB(.init(status: .final, text: text)) }
-            pendingTranslations[nextCommitSeq] = nil
-            nextCommitSeq += 1
         }
     }
 
@@ -160,15 +159,15 @@ final class LiveSessionModel {
 
     static func message(for error: Error) -> String {
         switch error {
-        case PipelineError.offline:               return "网络不可用，请检查连接"
-        case PipelineError.timeout:               return "翻译超时，请重试"
-        case PipelineError.rateLimited:           return "请求过于频繁，请稍后再试"
-        case PipelineError.micPermissionDenied:   return "需要麦克风权限，请在设置中开启"
+        case PipelineError.offline:                return "网络不可用，请检查连接"
+        case PipelineError.timeout:                return "翻译超时，请重试"
+        case PipelineError.rateLimited:            return "请求过于频繁，请稍后再试"
+        case PipelineError.micPermissionDenied:    return "需要麦克风权限，请在设置中开启"
         case PipelineError.speechPermissionDenied: return "需要语音识别权限，请在设置中开启"
-        case PipelineError.missingAPIKey:         return "未配置 API 密钥"
-        case PipelineError.recognizerUnavailable: return "当前语言的语音识别不可用"
-        case PipelineError.providerError(let m):  return "翻译服务错误：\(m)"
-        default:                                  return "发生未知错误"
+        case PipelineError.missingAPIKey:          return "未配置 API 密钥"
+        case PipelineError.recognizerUnavailable:  return "当前语言的语音识别不可用"
+        case PipelineError.providerError(let m):   return "翻译服务错误：\(m)"
+        default:                                   return "发生未知错误"
         }
     }
 
@@ -176,21 +175,22 @@ final class LiveSessionModel {
 
     private func startDemo() {
         generation += 1
+        let gen = generation
         listening = true
-        let pa = "重庆火锅很辣，但是…"
-        let fa = "重庆火锅很辣，但是很好吃！"
-        let pb = "Chongqing hot pot is spicy, but…"
-        let fb = "Chongqing hot pot is spicy, but delicious!"
-        demoTasks.append(Task { [weak self] in
-            await self?.delay(ms: 500);  self?.pushA(.init(status: .partial, text: pa))
-            await self?.delay(ms: 500);  self?.pushB(.init(status: .partial, text: pb))
-            await self?.delay(ms: 1000); self?.pushA(.init(status: .final, text: fa))
-            await self?.delay(ms: 600);  self?.pushB(.init(status: .final, text: fb))
-            self?.listening = false
-        })
-    }
-
-    private func delay(ms: UInt64) async {
-        try? await Task.sleep(nanoseconds: ms * 1_000_000)
+        let steps: [(UInt64, Bool, TranscriptLine)] = [
+            (500,  true,  .init(status: .partial, text: "重庆火锅很辣，但是…")),
+            (500,  false, .init(status: .partial, text: "Chongqing hot pot is spicy, but…")),
+            (1000, true,  .init(status: .final,   text: "重庆火锅很辣，但是很好吃！")),
+            (600,  false, .init(status: .final,   text: "Chongqing hot pot is spicy, but delicious!")),
+        ]
+        demoTask = Task { [weak self] in
+            for (ms, isA, line) in steps {
+                do { try await Task.sleep(nanoseconds: ms * 1_000_000) }
+                catch { return }                              // cancelled → stop mutating
+                guard let self, gen == self.generation, !Task.isCancelled else { return }
+                isA ? self.pushA(line) : self.pushB(line)
+            }
+            if let self, gen == self.generation { self.listening = false }
+        }
     }
 }

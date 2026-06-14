@@ -12,6 +12,8 @@ import Foundation
 @MainActor
 protocol SpeechRecognizing {
     nonisolated var capabilities: SpeechCapabilities { get }
+    /// Request mic + speech permission; throws distinct PipelineError cases.
+    func requestAuthorization() async throws
     func start(locale: Locale) throws -> AsyncThrowingStream<TranscriptEvent, Error>
     func stop()
 }

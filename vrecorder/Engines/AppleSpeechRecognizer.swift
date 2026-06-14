@@ -24,7 +24,7 @@ final class AppleSpeechRecognizer: SpeechRecognizing {
 
     /// Request speech + mic permission. Throws distinct errors so the UI can give
     /// the right recovery instruction (DIMENSIONS §6).
-    static func requestAuthorization() async throws {
+    func requestAuthorization() async throws {
         let speech = await withCheckedContinuation { c in
             SFSpeechRecognizer.requestAuthorization { c.resume(returning: $0) }
         }
@@ -92,15 +92,21 @@ final class AppleSpeechRecognizer: SpeechRecognizing {
         }
     }
 
+    /// Finish the stream with the mapped error EXACTLY once. Tears down audio
+    /// without finishing the continuation first (a normal finish would swallow
+    /// the error — audit Medium).
     private func finish(throwing error: Error) {
         let mapped: PipelineError = (error as? PipelineError)
             ?? .providerError("recognition: \((error as NSError).code)")
+        teardownAudio()
         let cont = continuation
-        stop()
+        continuation = nil
         cont?.finish(throwing: mapped)
     }
 
-    func stop() {
+    /// Stop audio + recognition without finishing the stream. Idempotent.
+    private func teardownAudio() {
+        guard running else { return }
         running = false
         audioEngine.inputNode.removeTap(onBus: 0)
         if audioEngine.isRunning { audioEngine.stop() }
@@ -108,7 +114,12 @@ final class AppleSpeechRecognizer: SpeechRecognizing {
         task?.cancel()
         task = nil
         request = nil
-        continuation?.finish()
+    }
+
+    func stop() {
+        teardownAudio()
+        let cont = continuation
         continuation = nil
+        cont?.finish()
     }
 }
