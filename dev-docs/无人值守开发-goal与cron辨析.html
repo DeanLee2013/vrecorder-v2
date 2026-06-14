@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/goal 还是 cron？—— 无人值守开发该用哪个（简明版）</title>
+<style>
+:root{
+  --bg:#f5f6f8;--ink:#1f2430;--muted:#6b7280;--line:#e3e7ee;--card:#fff;
+  --accent:#0f766e;--accent-bg:#ecfdf5;
+  --goal:#047857;--goal-bg:#d1fae5;--goal-bd:#6ee7b7;
+  --cron:#b45309;--cron-bg:#fef3c7;--cron-bd:#fcd34d;
+  --off:#b91c1c;--on:#15803d;--code:#0e1726;--code-ink:#dce6f5;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.85 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
+.wrap{max-width:840px;margin:0 auto;padding:0 22px 90px}
+.hero{padding:46px 0 6px}
+.hero h1{font-size:25px;line-height:1.4;margin:0 0 10px}
+.hero p{margin:0;color:var(--muted);font-size:15px}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px;background:#eef1f5;border-radius:5px;padding:1px 6px;color:#0f766e}
+h2{font-size:20px;margin:42px 0 6px;padding-left:12px;border-left:5px solid var(--accent)}
+.lede{color:var(--muted);font-size:14.5px;margin:2px 0 14px 16px}
+.answer{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 22px;margin:18px 0;box-shadow:0 1px 2px rgba(0,0,0,.02)}
+.answer .q{font-weight:800;margin:12px 0 2px;font-size:15.5px}
+.answer .q:first-child{margin-top:0}
+.answer .a{font-size:14.5px;margin:0}
+.no{color:var(--off);font-weight:800}.yes{color:var(--on);font-weight:800}.half{color:var(--cron);font-weight:800}
+.axis{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}
+.axis>div{border-radius:14px;padding:16px 18px;border:1px solid}
+.axisA{background:var(--goal-bg);border-color:var(--goal-bd)}
+.axisB{background:var(--cron-bg);border-color:var(--cron-bd)}
+.axis h3{margin:0 0 6px;font-size:16px}
+.axisA h3{color:#065f46}.axisB h3{color:#92400e}
+.axis p{margin:5px 0;font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin:16px 0;font-size:14.5px}
+.tbl{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0;background:var(--card)}
+.tbl th,.tbl td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+.tbl th{background:#eef4f3;font-weight:700}
+.metaphor{background:var(--accent-bg);border:1px solid #bfe4dd;border-radius:14px;padding:14px 18px;margin:16px 0;font-size:15px}
+.metaphor b{color:var(--accent)}
+.tip{background:#f5f3ff;border:1px solid #ddd6fe;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px}
+.tip b{color:#6d28d9}
+.warn{background:var(--cron-bg);border:1px solid var(--cron-bd);border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px}
+ul{padding-left:22px}li{margin:5px 0}
+footer{margin-top:60px;padding-top:18px;border-top:2px solid var(--line);color:var(--muted);font-size:13px}
+@media(max-width:620px){.axis{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hero">
+  <h1>/goal 还是 cron？无人值守开发该用哪个</h1>
+  <p>官方出了 <code>/goal</code>「让 Claude 朝一个目标持续工作」。有了它，是不是就不用 cron 定时唤醒了？<code>/goal</code> 自己算不算无人值守？这份简明版，三个问题一次说清。</p>
+</div>
+
+<!-- 结论 -->
+<h2>一句话结论</h2>
+<div class="answer">
+  <p class="q">① 有了 <code>/goal</code>，就不用 cron 了吗？</p>
+  <p class="a"><span class="no">不是。</span>两者管的是不同的事：<code>/goal</code> 让<b>一个已经开着的会话</b>自己干到目标达成；cron 是在<b>没有任何会话开着时</b>（你关机睡觉），定时开一个新会话来干活。前者是"踩油门"，后者是"打火启动"——油门替代不了钥匙。</p>
+  <p class="q">② <code>/goal</code> 自己算不算无人值守？</p>
+  <p class="a"><span class="half">算一半。</span>它能让"一次连续运行朝一个明确目标自动推进"，这是真无人值守，但只在<b>一个会话内、一个目标</b>。它做不了跨天、多任务、需要真机验证那种"舰队级"无人值守——因为它的判定模型<b>只能看对话里说过的内容，不会自己跑命令、读文件、上真机</b>。</p>
+  <p class="q">③ 那之前 cron 那套流程落后了吗？</p>
+  <p class="a"><span class="no">没落后。</span><code>/goal</code> 完全没碰"定时调度"和"台账/审计/真机验证"这些地基。它真正能帮上的，是把"每次唤醒后怎么把一件事推到底"做得更顺。<b>最佳用法是把两者搭配：cron 负责叫醒，<code>/goal</code> 负责这一程别半途返回。</b></p>
+</div>
+
+<!-- 核心：两个轴 -->
+<h2>核心：它俩在两个不同的"轴"上</h2>
+<p class="lede">官方文档自己就把 <code>/goal</code> 和 cron 分成了两类。理解这一点，三个问题自然就通了。</p>
+<div class="axis">
+  <div class="axisA">
+    <h3>🚗 /goal · 会话内续命</h3>
+    <p>已经有一个会话在跑，让它<b>不用你每步催，自己一直干到条件满足</b>。每个回合结束后，一个小模型检查"达成了吗"，没达成就接着干。</p>
+    <p>解决：<b>「这一程，怎么开到目的地不中途停」</b></p>
+  </div>
+  <div class="axisB">
+    <h3>⏰ cron · 无会话时唤醒</h3>
+    <p>根本没有会话开着时，<b>到点自动开一个全新的空白会话</b>来干活。读仓库恢复状态，挑一件活做完，结束。</p>
+    <p>解决：<b>「没人盯着时，谁来打火启动」</b></p>
+  </div>
+</div>
+<div class="metaphor">🔑 <b>一个比喻</b>：cron 是<b>车钥匙</b>——车熄火时把它发动起来；<code>/goal</code> 是<b>油门</b>——车在动时让它持续前进。问"有油门还要不要钥匙"，答案显然是：要，它俩干的不是一件事。</div>
+
+<!-- goal 是什么 -->
+<h2><code>/goal</code> 到底是什么（30 秒版）</h2>
+<div class="card">
+<ul>
+<li>你给它一个<b>完成条件</b>（比如"test/auth 的测试全过、lint 干净"），它就跨多个回合自己干，直到条件满足，然后自动清除目标。</li>
+<li>每回合结束，一个<b>小快模型（默认 Haiku）</b>看一眼对话，判断"达成没"，没达成就让它继续。</li>
+<li>本质上，它就是官方把"每回合结束时判断该不该继续"这个机制（也就是一个 Stop 钩子）<b>做成了一条顺手的命令</b>。</li>
+<li>关键限制：那个判定模型<b>只读对话里已经出现的内容</b>，不会自己跑命令或读文件。所以条件必须是"Claude 自己的输出能证明"的东西。</li>
+</ul>
+</div>
+<div class="warn">⚠️ 因为它<b>看不到真实环境</b>，像"这个 bug 在<b>真机</b>上不再复现"这种条件它判不了（除非 Claude 把真机观察写进了对话）。真机验证、写证据文件、按证据关 issue——这些仍归本项目的确定性钩子和人工，不归 <code>/goal</code>。</div>
+
+<!-- 怎么搭配 -->
+<h2>怎么把它和 vrecorder-v2 搭配用</h2>
+<p class="lede">不替换任何东西，只是给"每次唤醒后的那一程"加一个更稳的驱动器。</p>
+<div class="card">
+<p>vrecorder-v2 的无人值守仍然是三件套：<b>cron（叫醒）+ 台账/dev-docs（记住）+ 钩子 & 提交即审计（守纪律）</b>。<code>/goal</code> 补的是第四块——<b>「这一程开到底」的油门</b>：</p>
+<ul>
+<li><b>bugfix 最适合用</b>：修 bug 天然"有界 + 终态可验证"。可让那一轮设一个 <code>/goal</code>，干到"复现测试转绿、Codex 审计无 High、合并、台账翻 FIXED"才返回。</li>
+<li><b>feature 谨慎用</b>：功能是开放式多步，别把整个功能塞进一个 goal；要用就只包<b>单个 WI</b>。</li>
+<li><b>verify 基本不用</b>：它的核心是上真机看，而 goal 看不到真机。</li>
+</ul>
+<p style="margin-bottom:0">用的时候记得：① 条件写成"对话里能证明"的（如"测试退出 0""审计无 High"）；② 加 <code>stop after N turns</code> 封顶，别让一个会话越滚越大（那正是 cron 用新鲜会话要躲的事）；③ 它是<b>软驱动</b>，合并/翻状态的硬门禁仍由钩子把守，两者叠加不是二选一。</p>
+</div>
+
+<!-- 决策表 -->
+<h2>何时用哪个 · 速查</h2>
+<table class="tbl">
+<tr><th style="width:46%">你的场景</th><th>用什么</th></tr>
+<tr><td>关机/跨天/没人在场，要定时自动启动工作</td><td><b>cron</b>（<code>/goal</code> 做不到）</td></tr>
+<tr><td>我开着会话，给它一个有明确终点的大活，想免催跑完</td><td><b><code>/goal</code> + 自动批准工具</b></td></tr>
+<tr><td>要按固定间隔重复跑同一句提示（不是直到某条件）</td><td><b><code>/loop</code></b></td></tr>
+<tr><td>无人值守舰队（多角色、跨天、带真机验证）</td><td><b>cron + 台账 + 钩子 + 六门</b>，每轮内部可选 <code>/goal</code> 驱动有界子任务</td></tr>
+</table>
+
+<div class="tip">🔁 <b>一句话收束</b>：<code>/goal</code> 不是 cron 的替代品，是它的<b>搭档</b>——cron 负责"没会话时发动"，<code>/goal</code> 负责"会话内踩到底"。之前的流程没落后，只是"每轮靠手写'请继续'硬撑"这个旧习惯可以换成更稳的 <code>/goal</code>。地基不动，反而更稳。</div>
+
+<footer>
+  <p>简明版 · 据 Anthropic 官方文档《Keep Claude working toward a goal》改写（去掉了原版的版本号与密集对照表）。配套 vrecorder-v2 启动教程见同目录 <code>无人值守开发-启动教程-vrecorder-v2.html</code>。</p>
+</footer>
+
+</div>
+</body>
+</html>
