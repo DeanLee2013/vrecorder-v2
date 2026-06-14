@@ -199,3 +199,30 @@ final class LiveSessionModel {
         }
     }
 }
+
+#if DEBUG
+// Verification seam (feature #6 WI-1). File-scope DEBUG-gated per rule 50 §7; in
+// the same file so it can set the model's `private(set)` state. Drives the model
+// to a deterministic state WITHOUT a recognizer/network — used by the DebugBridge
+// so XCUITests can reach UI states the simulator can't produce from a real mic.
+extension LiveSessionModel {
+    /// Stop any active session, then atomically install a fixed transcript state.
+    /// `listening: true` puts the model in a deterministic active state (no STT).
+    func installFixture(a: [TranscriptLine], b: [TranscriptLine], listening: Bool = false) {
+        stop()                       // tears down recognizer/demo + bumps generation
+        partyA = a
+        partyB = b
+        errorMessage = nil
+        self.listening = listening   // set AFTER stop() (which clears it)
+    }
+
+    /// Clear to the empty, idle state.
+    func resetTranscripts() {
+        stop()
+        partyA = []
+        partyB = []
+        errorMessage = nil
+        listening = false
+    }
+}
+#endif

@@ -18,6 +18,7 @@
 		2EACBFD9A7158E3DB9BCEBE0 /* RecognitionEventCoalescer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33FF42C9A1452C30A57F2E86 /* RecognitionEventCoalescer.swift */; };
 		32C1620AB7DE6322A90A5E0B /* APIKeyEntryModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C56144063123BBAD9578F36 /* APIKeyEntryModelTests.swift */; };
 		3970803AD402C4B9A76E75D7 /* APIKeyEntryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2A1B2B5015586830A3D15DD /* APIKeyEntryModel.swift */; };
+		3A0E795E48FD9D1FF5706ACD /* LiveSessionFixtureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6ED22B520DB80DE541BBC80 /* LiveSessionFixtureTests.swift */; };
 		424AD21D910E83AF9D42F5F9 /* AppleSpeechRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C923BA1FFC84279540C7315A /* AppleSpeechRecognizer.swift */; };
 		50369E1AD57AB2F433B60321 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6A1A3B4A4BF1AE9F6EE8162E /* Assets.xcassets */; };
 		5650104E755B1DBE1F6F3728 /* OpenAITranslationEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18F1961BDE7B59FDF65FD530 /* OpenAITranslationEngine.swift */; };
@@ -95,6 +96,7 @@
 		E50D83948BB6C00E64B1BEE5 /* VRecorderApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VRecorderApp.swift; sourceTree = "<group>"; };
 		F2B4D17D7B8994F0EA964849 /* LiveSessionModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSessionModelTests.swift; sourceTree = "<group>"; };
 		F4CAB8EE2621639C6D99E947 /* WaterSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaterSurface.swift; sourceTree = "<group>"; };
+		F6ED22B520DB80DE541BBC80 /* LiveSessionFixtureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSessionFixtureTests.swift; sourceTree = "<group>"; };
 		F7C85BC02C7E59A61FF20E58 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		F8F658EF16861D5479D2B008 /* vrecorderTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = vrecorderTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FBA761786DBED03C12E8731A /* vrecorder.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = vrecorder.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -233,6 +235,7 @@
 				E171BDC8642B9571E1995476 /* AudioSessionControllerTests.swift */,
 				DF4A7E55163E3E230D076B79 /* AudioTapBridgeTests.swift */,
 				5CB9E1B6BC81BE95091BFCC7 /* KeychainAPIKeyStoreTests.swift */,
+				F6ED22B520DB80DE541BBC80 /* LiveSessionFixtureTests.swift */,
 				F2B4D17D7B8994F0EA964849 /* LiveSessionModelTests.swift */,
 				B50B799EA3EA4F736BC9B5C2 /* OpenAIStatusMappingTests.swift */,
 				E236F462813C7002CD3476D6 /* OpenAITranslationEngineTests.swift */,
@@ -383,6 +386,7 @@
 				0C3CFAA1491E28DF5C943317 /* AudioSessionControllerTests.swift in Sources */,
 				BEAA3C178A1EEDAB52974312 /* AudioTapBridgeTests.swift in Sources */,
 				8931A9E202F5ABF83225595D /* KeychainAPIKeyStoreTests.swift in Sources */,
+				3A0E795E48FD9D1FF5706ACD /* LiveSessionFixtureTests.swift in Sources */,
 				0D7A87122D4A3A5F9DEB8AAC /* LiveSessionModelTests.swift in Sources */,
 				CE1B5DC6C821834DC46CB4CD /* OpenAIStatusMappingTests.swift in Sources */,
 				6B18EFFE961F4B6A712EDAC1 /* OpenAITranslationEngineTests.swift in Sources */,
@@ -409,7 +413,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "VRecorder 需要使用麦克风进行实时同声传译。";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "VRecorder 使用语音识别将你的发言实时转写为文字。";
@@ -422,7 +426,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.2.5;
+				MARKETING_VERSION = 0.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.vrecorder.app;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -481,7 +485,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -502,7 +506,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 0.2.5;
+				MARKETING_VERSION = 0.3.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -567,7 +571,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -582,7 +586,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 0.2.5;
+				MARKETING_VERSION = 0.3.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -600,7 +604,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				EXCLUDED_SOURCE_FILE_NAMES = "openai-key.txt";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "VRecorder 需要使用麦克风进行实时同声传译。";
@@ -614,7 +618,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.2.5;
+				MARKETING_VERSION = 0.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.vrecorder.app;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
