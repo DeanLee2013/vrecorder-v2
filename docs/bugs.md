@@ -56,6 +56,7 @@ Track bugs here. Tell the agent "fix bug #N" to start a fix.
 | 6 | OpenAIStatusMappingTests shared state races under parallel testing | `vrecorderTests` | Medium | FIXED | From feature-#6 WI-1 audit. `nonisolated(unsafe)` static stub state mutated per test → Swift Testing parallel race / flaky. Fix: `.serialized` suite trait or per-request locked state. GH: #16. |
 | 7 | AudioTapBridge takes NSLock + allocates on the render thread | `AudioTapBridge` / `PCMRollover` | Medium | TODO | From feature-#6 WI-2 audit. Render-thread tap takes a lock + allocates + can wait during rollover replay → may block render thread / drop audio. Fix: bounded dedicated queue or lock-free ring; nonblocking tap. Related feature #4. GH: see issue. |
 | 8 | pre-push hook false-matches prompt 'VERDICT: BLOCK' → blocks genuine PASS | `scripts/git-hooks/pre-push` | High | FIXED (source) | Unanchored grep matched the prompt's instruction text. Source fixed (anchored `^VERDICT: BLOCK`); verified allows PASS, still blocks real BLOCK. **Installing the fixed hook needs operator authorization.** GH: see issue. |
+| 9 | Speech failures all map to recognitionFailed (no perm/network distinction) | `AppleSpeechRecognizer` | Low | TODO | From feature-#6 WI-3 audit. Recheck authorization + map connectivity errors before the generic recognitionFailed fallback. GH: #24. |
 
 > Interruption auto-resume (related Gate-4 Medium) is tracked as **feature #3**, not a bug.
 

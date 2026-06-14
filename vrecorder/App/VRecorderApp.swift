@@ -15,6 +15,7 @@ struct VRecorderApp: App {
     var body: some Scene {
         WindowGroup {
             RootView(env: env)
+                .debugBridge(env.session)   // DEBUG-only vrecorder-debug:// seam
         }
     }
 
