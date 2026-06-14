@@ -1,8 +1,13 @@
 # Feature #2 — API key entry (Keychain editor)
 
-> Gate-1 plan, **revision 3** (addresses Codex plan-audit rounds 1–2).
+> Gate-1 plan, **revision 4** (addresses Codex plan-audit rounds 1–3).
 > Status: PLANNED after Gate-2 audit passes.
-> **Estimated PR size:** ~6 files (~300–400 net LOC incl. tests), single WI/PR.
+> **Estimated PR size** (audit-3 #5), single WI/PR: **5 production** files
+> (`APIKeyStore.swift` mod, `APIKeyEntryModel.swift` new, `APIKeyEntryView.swift`
+> new, `SettingsScreen.swift` mod, `RootView.swift` mod) + **2 test** files +
+> **3 docs** (`features.md`, `architecture.md`, `README.md`) + **version** files
+> (`project.yml` + regenerated `project.pbxproj`) + **1 verification** evidence
+> file. ≈ 450–550 net LOC incl. tests.
 
 ## Revision history
 
@@ -12,8 +17,12 @@
 - **r3** — HTML design mockup committed (rule-51 format), injectable Security
   boundary for real failure tests, `clear()` reports failure, provider-compatible
   validation + explicit masking bounds, explicit `@State` model ownership,
-  corrected BYOK transmission disclosure, Gate-1 completeness (PR size, revision
-  history, docs-sync, version bump).
+  corrected BYOK transmission disclosure, Gate-1 completeness. Audit round 3:
+  2 High + 3 Medium.
+- **r4** — HTML mockup adds failure + clear-confirm states; `KeychainOps: Sendable`
+  with `@Sendable` closures + explicit init; validation regex `{13,197}` (total
+  16–200) + boundary tests; README sync added; prior-art/rejected-alternatives
+  section restored; accurate file-count estimate.
 
 ## Problem
 
@@ -75,13 +84,18 @@ To actually test the `SecItemUpdate` → `SecItemAdd` → preserve-old-key logic
 injected operation seam:
 
 ```swift
-struct KeychainOps {                          // default = real Security calls
-    var update: (CFDictionary, CFDictionary) -> OSStatus = SecItemUpdate
-    var add:    (CFDictionary, UnsafeMutablePointer<CFTypeRef?>?) -> OSStatus = SecItemAdd
-    var delete: (CFDictionary) -> OSStatus = SecItemDelete
-    var copy:   (CFDictionary, UnsafeMutablePointer<CFTypeRef?>?) -> OSStatus = SecItemCopyMatching
+struct KeychainOps: Sendable {                // Sendable — stored in a Sendable store (audit-3 #2)
+    var update: @Sendable (CFDictionary, CFDictionary) -> OSStatus = SecItemUpdate
+    var add:    @Sendable (CFDictionary, UnsafeMutablePointer<CFTypeRef?>?) -> OSStatus = SecItemAdd
+    var delete: @Sendable (CFDictionary) -> OSStatus = SecItemDelete
+    var copy:   @Sendable (CFDictionary, UnsafeMutablePointer<CFTypeRef?>?) -> OSStatus = SecItemCopyMatching
 }
 ```
+
+`KeychainAPIKeyStore` gets an explicit `init(ops: KeychainOps = KeychainOps())`.
+Scripted test state (the status sequence + a call counter) is held behind a
+lock/atomic so the `@Sendable` closures stay race-free (the SecItem fns are
+themselves thread-safe).
 
 Tests inject a `KeychainOps` returning scripted status sequences (e.g.
 `update→errSecDuplicateItem` then assert old key preserved; `update→errSecItemNotFound`
@@ -107,9 +121,10 @@ become real status-sequence tests, not InMemory stand-ins.
     must not flip the UI to 未配置) (audit-2 #4)
   - `static func isValid(_:) -> Bool` — provider-compatible (audit-2 #5): after
     trimming surrounding whitespace, the key must match
-    `^sk-[A-Za-z0-9_-]{12,196}$` — i.e. `sk-` prefix, **ASCII** alphanumeric +
-    `-`/`_` only (rejects emoji/CJK/control/internal whitespace), total length
-    **16–200**.
+    `^sk-[A-Za-z0-9_-]{13,197}$` — i.e. `sk-` prefix, **ASCII** alphanumeric +
+    `-`/`_` only (rejects emoji/CJK/control/internal whitespace), **total length
+    16–200** (3 prefix + 13..197 body) (audit-3 #3). Boundary tests at total
+    length 15 (reject), 16 (accept), 200 (accept), 201 (reject).
   - `static func mask(_:) -> String?` — reveal `sk-…` + last 4 **only when total
     length ≥ 12**; otherwise return `"已配置"` (never the whole secret) (audit-1 #4).
   - Injected `APIKeyStoring` (mockable; `InMemoryAPIKeyStore` exists).
@@ -131,6 +146,34 @@ become real status-sequence tests, not InMemory stand-ins.
   file refs) (audit-1 #6).
 - **Files OUT of scope**: engine selection, pipeline, audio, demo simulator,
   feature #3, the Claude engine.
+
+## Prior art / project precedent / rejected alternatives (rule 47, audit-3 #5)
+
+**Project precedent reused:**
+- `APIKeyStoring` / `KeychainAPIKeyStore` / `InMemoryAPIKeyStore` + `APIProvider`
+  (feature #1, `vrecorder/Security/`) — this feature adds a model + view over the
+  existing store; it does not introduce a new persistence layer.
+- The `@MainActor @Observable` view-model + `@State`-owned-in-`init` pattern is
+  exactly how `LiveScreen` owns `LiveSessionModel` (feature #1) — reused verbatim.
+- Light-scope `VR` design tokens + grouped-card visual language from
+  `SettingsScreen` (feature #1) — reused (tokens, not the private helpers).
+- The audit-driven error taxonomy (`PipelineError`) precedent: surface failures
+  as typed state, never silently — mirrored by `saveError`/`clear() -> Bool`.
+
+**Industry prior art:** SwiftUI `SecureField` + Keychain `SecItemUpdate`-first
+(not delete-then-add) is the standard iOS pattern for editable secrets; BYOK key
+entry mirrors common client apps that store a user-supplied provider key in the
+Keychain.
+
+**Rejected alternatives:**
+- *System `UIAlertController` text field for entry* — minimal, but clashes with
+  the designed light-scope card system; user chose the design-system sheet.
+- *Push via `NavigationStack`* — RootView uses manual ZStack navigation; a sheet
+  is lighter than introducing a NavigationStack for one screen.
+- *Keep delete-then-add in the store* — rejected: destroys the old key on a
+  failed write and opens a missing-key window for concurrent translation.
+- *Validate only "non-empty"* — rejected: lets emoji/CJK/garbage through; a
+  provider-shaped regex catches paste errors early.
 
 ## Work items (audit-1 #8 resolved — ONE cohesive WI/PR)
 
@@ -198,9 +241,9 @@ Plus `APIKeyEntryModelTests`: `clearFailureRetainsConfiguredStateAndSetsError`.
 ## Docs sync + version bump (audit-2 #7, rules 24 + 40)
 
 - **`docs/architecture.md`**: add `APIKeyEntryModel` to the Services table and
-  note the Settings → key-entry sheet flow. **`README.md`**: no change (feature
-  list is high-level; no new top-level dir). **`docs/features.md`**: row #2 →
-  `IN PROGRESS` then `DONE`/`VERIFIED`.
+  note the Settings → key-entry sheet flow. **`README.md`** (rule 24, user-visible
+  feature lands): add a bullet noting in-app OpenAI key configuration (Settings ›
+  API 密钥). **`docs/features.md`**: row #2 → `IN PROGRESS` then `DONE`/`VERIFIED`.
 - **Version bump** (rule 40): minor — `0.1.0` → `0.2.0`, `CURRENT_PROJECT_VERSION`
   `1` → `2`, via `project.yml` + `xcodegen generate`, as the tail commit before
   the PR.

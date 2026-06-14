@@ -89,5 +89,56 @@
   <figcaption>无密钥 · 输入为空 → 保存禁用 · 无清除行</figcaption>
 </figure>
 
+<figure class="col">
+  <div class="phone"><div class="sheet">
+    <div class="hdr"><span class="cancel">取消</span><span class="save on">保存</span></div>
+    <h1>API 密钥</h1>
+    <div class="cap">OPENAI</div>
+    <div class="card">
+      <div class="row"><span class="label">密钥</span>
+        <input type="password" value="sk-XXXXXXXXXXXXXXXX" /></div>
+    </div>
+    <div class="masked" style="color:var(--red-500)">保存失败，请重试（已保留原密钥）</div>
+    <div class="card" style="margin-top:24px">
+      <div class="row destructive">清除密钥</div>
+    </div>
+    <div class="notice">你的密钥保存在本机钥匙串（Keychain）。同传时会以
+      Bearer 凭证经 TLS 发送给你选择的服务商（OpenAI），不会发给其它第三方。
+      设备被攻破时密钥仍可能泄露。</div>
+  </div></div>
+  <figcaption>保存失败态 · 内联红字错误 · sheet 不关 · 旧密钥保留</figcaption>
+</figure>
+
+<figure class="col">
+  <div class="phone" style="position:relative">
+    <div class="sheet" style="filter:brightness(.6)">
+      <div class="hdr"><span class="cancel">取消</span><span class="save on">保存</span></div>
+      <h1>API 密钥</h1><div class="cap">OPENAI</div>
+      <div class="card"><div class="row"><span class="label">密钥</span>
+        <input type="password" value="sk-XXXXXXXXXXXXXXXX" /></div></div>
+      <div class="masked">当前：sk-…AB12</div>
+      <div class="card" style="margin-top:24px"><div class="row destructive">清除密钥</div></div>
+    </div>
+    <!-- system alert (iOS chrome) -->
+    <div style="position:absolute;inset:0;display:flex;align-items:center;
+                justify-content:center;">
+      <div style="width:240px;background:#f2f2f7e8;border-radius:14px;
+                  text-align:center;font-family:var(--font);overflow:hidden;
+                  backdrop-filter:blur(20px);">
+        <div style="padding:18px 16px 14px;">
+          <div style="font-size:16px;font-weight:600;color:#111;">清除密钥？</div>
+          <div style="font-size:13px;color:#333;margin-top:4px;">清除后需重新输入才能继续同传。</div>
+        </div>
+        <div style="display:flex;border-top:1px solid #3c3c4326;">
+          <div style="flex:1;padding:11px;font-size:17px;color:#007aff;
+                      border-right:1px solid #3c3c4326;">取消</div>
+          <div style="flex:1;padding:11px;font-size:17px;font-weight:600;color:var(--red-500);">清除</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <figcaption>清除确认 · iOS 系统 alert（系统 chrome）</figcaption>
+</figure>
+
 </body>
 </html>
