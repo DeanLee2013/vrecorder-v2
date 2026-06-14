@@ -72,14 +72,19 @@ struct KeychainAPIKeyStore: APIKeyStoring {
 /// In-memory store for tests and previews. `failNextWrite` injects one failure.
 final class InMemoryAPIKeyStore: APIKeyStoring, @unchecked Sendable {
     private var storage: [String: String] = [:]
+    private var _failNextWrite = false
     private let lock = NSLock()
-    var failNextWrite = false
     init(_ seed: [String: String] = [:]) { storage = seed }
+    /// All access guarded by `lock` (audit-G4 Low: was read/written off-lock).
+    var failNextWrite: Bool {
+        get { lock.withLock { _failNextWrite } }
+        set { lock.withLock { _failNextWrite = newValue } }
+    }
     func key(for provider: String) -> String? { lock.withLock { storage[provider] } }
     @discardableResult
     func setKey(_ value: String?, for provider: String) -> Bool {
         lock.withLock {
-            if failNextWrite { failNextWrite = false; return false }   // preserve existing
+            if _failNextWrite { _failNextWrite = false; return false }   // preserve existing
             storage[provider] = value
             return true
         }

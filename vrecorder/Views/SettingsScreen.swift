@@ -23,6 +23,11 @@ struct SettingsScreen: View {
     @State private var subSize = "标准"
     @State private var transcribeOnly = false
 
+    /// Real marketing version from the bundle (audit-G4 Low: was hardcoded 1.0.0).
+    static var appVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
+    }
+
     init(onBack: @escaping () -> Void, store: any APIKeyStoring) {
         self.onBack = onBack
         self.store = store
@@ -52,7 +57,7 @@ struct SettingsScreen: View {
                     group("通用") {
                         navRow("历史记录", value: "保留 30 天")
                         destructiveRow("清空翻译记录")
-                        navRow("关于", value: "版本 1.0.0", last: true)
+                        navRow("关于", value: "版本 \(Self.appVersion)", last: true)
                     }
                 }
                 .padding(.horizontal, 20)

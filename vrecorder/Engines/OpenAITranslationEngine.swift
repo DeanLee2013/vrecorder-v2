@@ -32,16 +32,25 @@ struct OpenAITranslationEngine: TranslationEngine {
             guard let http = response as? HTTPURLResponse else { throw PipelineError.providerError("no response") }
             switch http.statusCode {
             case 200: return try Self.parse(data: data)
-            case 401: throw PipelineError.missingAPIKey
+            // A request only reaches here WITH a key, so 401/403 means the key is
+            // present but wrong/revoked — not "missing" (audit-G4 #4).
+            case 401, 403: throw PipelineError.invalidAPIKey
             case 429: throw PipelineError.rateLimited
             default:  throw PipelineError.providerError("HTTP \(http.statusCode)")
             }
         } catch let e as PipelineError {
             throw e
-        } catch let e as URLError where e.code == .timedOut {
-            throw PipelineError.timeout
-        } catch let e as URLError where e.code == .notConnectedToInternet || e.code == .networkConnectionLost {
-            throw PipelineError.offline
+        } catch let e as URLError {
+            switch e.code {
+            case .timedOut:
+                throw PipelineError.timeout
+            case .notConnectedToInternet, .networkConnectionLost, .cannotConnectToHost,
+                 .cannotFindHost, .dnsLookupFailed, .internationalRoamingOff,
+                 .dataNotAllowed, .secureConnectionFailed:
+                throw PipelineError.offline
+            default:
+                throw PipelineError.providerError("network: \(e.code.rawValue)")
+            }
         }
     }
 

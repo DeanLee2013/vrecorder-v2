@@ -48,6 +48,7 @@ enum PipelineError: Error, Equatable {
     case micPermissionDenied
     case speechPermissionDenied
     case missingAPIKey
+    case invalidAPIKey              // key present but rejected by the provider (401)
     case recognizerUnavailable
     case recognitionFailed          // STT (Speech) failure, distinct from translation
     case providerError(String)
