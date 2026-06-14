@@ -139,11 +139,26 @@ final class AppleSpeechRecognizer: SpeechRecognizing {
     /// the error — audit Medium). Ignores stale-session callbacks (bug #5).
     private func finish(gen: Int, throwing error: Error) {
         guard gen == generation else { return }
-        let mapped: PipelineError = (error as? PipelineError) ?? .recognitionFailed
+        let mapped = (error as? PipelineError)
+            ?? Self.mapRecognitionError(error,
+                                        authorized: SFSpeechRecognizer.authorizationStatus() == .authorized)
         teardownAudio()
         let cont = continuation
         continuation = nil
         cont?.finish(throwing: mapped)
+    }
+
+    /// Classify a Speech-framework error (bug #9): revoked permission and network
+    /// failures (when on-device recognition falls back to cloud) get specific
+    /// taxonomy instead of the generic `recognitionFailed`. Pure + nonisolated so
+    /// it's unit-testable with synthetic `NSError`s.
+    nonisolated static func mapRecognitionError(_ error: Error, authorized: Bool) -> PipelineError {
+        if !authorized { return .speechPermissionDenied }
+        let ns = error as NSError
+        if ns.domain == NSURLErrorDomain {
+            return ns.code == NSURLErrorTimedOut ? .timeout : .offline
+        }
+        return .recognitionFailed
     }
 
     /// Stop audio + recognition without finishing the stream. Idempotent.
