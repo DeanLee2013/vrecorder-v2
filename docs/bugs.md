@@ -52,7 +52,7 @@ Track bugs here. Tell the agent "fix bug #N" to start a fix.
 | 2 | Unbounded partial-result stream + per-callback Task accumulation | `AppleSpeechRecognizer` | Medium | PARTIALLY FIXED | Same audit; long live sessions can accumulate partials/tasks. PARTIAL: per-callback Task pile-up removed (one pump task); partials coalesce + finals never dropped (RecognitionEventCoalescer, tested). Residual: the OUTPUT stream + finals array aren't demand-aware bounded — true backpressure is feature #4's streaming redesign. GH: #4. |
 | 3 | AirPods/Bluetooth mic unavailable + route-add ignored | `AudioSessionController` | Medium | FIXED | From bug-#1 Gate-4 audit. `.playAndRecord` omits `.allowBluetoothHFP`; only `.oldDeviceUnavailable` handled. Fix: add BT option + handle `.newDeviceAvailable` (reconfigure/restart). GH: #5. |
 | 4 | OpenAI 408/504 mapped to provider error, not timeout | `OpenAITranslationEngine` | Medium | TODO | From bug-#2 audit. HTTP 408/504 should map to `PipelineError.timeout` (test with injected URLSession). GH: #8. |
-| 5 | Recognizer callbacks lack session/segment identity | `AppleSpeechRecognizer` | High | TODO | From bug-#2 audit. Cancelled task can report after restart → rotate/terminate the new session. Fix: generation token validated in rotateAfterFinal/finish/stop. GH: #9. |
+| 5 | Recognizer callbacks lack session/segment identity | `AppleSpeechRecognizer` | High | FIXED | From bug-#2 audit. Cancelled task can report after restart → rotate/terminate the new session. Fix: generation token validated in rotateAfterFinal/finish/stop. GH: #9. |
 
 > Interruption auto-resume (related Gate-4 Medium) is tracked as **feature #3**, not a bug.
 

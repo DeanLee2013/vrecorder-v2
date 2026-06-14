@@ -28,6 +28,10 @@ final class AppleSpeechRecognizer: SpeechRecognizing {
     private var coalescer: RecognitionEventCoalescer?
     private var pumpTask: Task<Void, Never>?
     private var running = false
+    /// Bumped on every begin/stop. A recognition callback captures the generation
+    /// at task-creation; main-actor hops validate it so a stale callback (after a
+    /// restart) can't rotate or terminate the new session (bug #5 / GH #9).
+    private var generation = 0
 
     /// Request speech + mic permission. Throws distinct errors so the UI can give
     /// the right recovery instruction (DIMENSIONS §6).
@@ -65,6 +69,7 @@ final class AppleSpeechRecognizer: SpeechRecognizing {
         }
         self.recognizer = recognizer
         self.running = true
+        generation += 1          // new session — invalidate any stale callbacks
 
         // One pump task drains the coalescer into the output stream: partials
         // coalesce to the latest, finals are never dropped (bug #2 High). The
@@ -100,28 +105,30 @@ final class AppleSpeechRecognizer: SpeechRecognizing {
         if recognizer.supportsOnDeviceRecognition { request.requiresOnDeviceRecognition = true }
         self.request = request
         tapBridge.setRequest(request)
+        let gen = generation     // capture this session's identity (bug #5)
         task = recognizer.recognitionTask(with: request) { [weak self] result, error in
-            // Runs off the main actor. PUSH to the (Sendable) coalescer — no
-            // per-callback main-actor Task, partials coalesce, finals never drop
-            // (bug #2). Only the rare rotate-on-final / error paths hop to main.
+            // Runs off the main actor. PUSH to the (Sendable) coalescer captured
+            // for THIS session — no per-callback main-actor Task, partials coalesce,
+            // finals never drop (bug #2). The rare rotate/error hops validate `gen`
+            // so a stale callback can't touch a restarted session (bug #5).
             if let result {
                 let text = result.bestTranscription.formattedString
                 if result.isFinal {
                     if !text.isEmpty { coalescer.push(.final(text)) }
-                    Task { @MainActor in self?.rotateAfterFinal() }
+                    Task { @MainActor in self?.rotateAfterFinal(gen: gen) }
                 } else {
                     coalescer.push(.partial(text))
                 }
             } else if let error {
-                Task { @MainActor in self?.finish(throwing: error) }
+                Task { @MainActor in self?.finish(gen: gen, throwing: error) }
             }
         }
     }
 
     /// On the main actor after a final: drop the closed request/task and rotate to
     /// the next segment (keeps interpreting). No-op once stopped.
-    private func rotateAfterFinal() {
-        guard running else { return }
+    private func rotateAfterFinal(gen: Int) {
+        guard running, gen == generation else { return }   // ignore stale callbacks
         task = nil
         request = nil
         startSegment()
@@ -129,8 +136,9 @@ final class AppleSpeechRecognizer: SpeechRecognizing {
 
     /// Finish the stream with the mapped error EXACTLY once. Tears down audio
     /// without finishing the continuation first (a normal finish would swallow
-    /// the error — audit Medium).
-    private func finish(throwing error: Error) {
+    /// the error — audit Medium). Ignores stale-session callbacks (bug #5).
+    private func finish(gen: Int, throwing error: Error) {
+        guard gen == generation else { return }
         let mapped: PipelineError = (error as? PipelineError) ?? .recognitionFailed
         teardownAudio()
         let cont = continuation
@@ -156,6 +164,7 @@ final class AppleSpeechRecognizer: SpeechRecognizing {
     }
 
     func stop() {
+        generation += 1          // invalidate any in-flight callbacks (bug #5)
         teardownAudio()
         let cont = continuation
         continuation = nil
