@@ -83,7 +83,11 @@ if [ $rc -ne 0 ]; then
   exit 0   # tool failure (timeout/auth) must not hard-block a push; the human reviews the artifact
 fi
 
-if grep -q 'VERDICT: BLOCK' "$OUT" 2>/dev/null; then
+# Match the VERDICT on its own line only (anchored). The audit artifact also
+# contains the PROMPT's instruction text ("...a line exactly: 'VERDICT: BLOCK'
+# if ..."), so an unanchored `grep -q 'VERDICT: BLOCK'` false-matched that and
+# blocked even on a genuine PASS. Anchor to a line that STARTS with the verdict.
+if grep -qE '^[[:space:]]*VERDICT: BLOCK[[:space:]]*$' "$OUT" 2>/dev/null; then
   echo "" >&2
   echo "❌ pre-push BLOCKED: Codex found Critical/High issues. See ${OUT#$REPO_ROOT/}" >&2
   echo "   Fix them, or bypass intentionally with: git push --no-verify" >&2
