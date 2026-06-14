@@ -35,6 +35,20 @@
                ReferencedContainer = "container:vrecorder.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "59E212FB83C5EC7044CC3AE6"
+               BuildableName = "vrecorderUITests.xctest"
+               BlueprintName = "vrecorderUITests"
+               ReferencedContainer = "container:vrecorder.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -61,6 +75,17 @@
                BlueprintIdentifier = "BDD7E2C58733EF59EAD88C46"
                BuildableName = "vrecorderTests.xctest"
                BlueprintName = "vrecorderTests"
+               ReferencedContainer = "container:vrecorder.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "59E212FB83C5EC7044CC3AE6"
+               BuildableName = "vrecorderUITests.xctest"
+               BlueprintName = "vrecorderUITests"
                ReferencedContainer = "container:vrecorder.xcodeproj">
             </BuildableReference>
          </TestableReference>

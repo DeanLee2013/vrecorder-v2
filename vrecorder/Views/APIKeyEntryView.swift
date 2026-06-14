@@ -54,6 +54,7 @@ struct APIKeyEntryView: View {
                     .font(.system(size: VR.FontSize.body, weight: .semibold))
                     .foregroundStyle(model.canSave ? VR.accentLight : VR.textFaint)
                     .disabled(!model.canSave)
+                    .accessibilityIdentifier("vr.apikey.save")
             }
             .font(.system(size: VR.FontSize.body))
             .padding(.horizontal, 20).padding(.top, 18).padding(.bottom, 6)
@@ -70,6 +71,7 @@ struct APIKeyEntryView: View {
             SecureField("sk-…", text: $model.draft)
                 .textInputAutocapitalization(.never).autocorrectionDisabled()
                 .foregroundStyle(VR.textPrimaryLight)
+                .accessibilityIdentifier("vr.apikey.field")
         }
         .font(.system(size: VR.FontSize.body))
         .frame(minHeight: 50).padding(.horizontal, 16)
@@ -82,6 +84,7 @@ struct APIKeyEntryView: View {
         Button { confirmClear = true } label: {
             Text("清除密钥").foregroundStyle(VR.red500)
                 .font(.system(size: VR.FontSize.body))
+                .accessibilityIdentifier("vr.apikey.clear")
                 .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
                 .padding(.horizontal, 16)
         }

@@ -33,6 +33,7 @@
 		9B009850D59563F3242DFAEF /* LiveSessionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43DCE3891E67B759EE664E94 /* LiveSessionModel.swift */; };
 		A243D9920E41B4D958F91AD8 /* TranscriptLineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9356CECCE16BD7BA708C0085 /* TranscriptLineView.swift */; };
 		B3F828C55A648351FE31D2EF /* WaterSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4CAB8EE2621639C6D99E947 /* WaterSurface.swift */; };
+		B776CFE6045F6DF0F9D1949E /* LiveScreenUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B37859C7D99BDFD8F87BB356 /* LiveScreenUITests.swift */; };
 		B93F0F125810C06C0DCAAD8D /* LiveBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3548C4B3F60267E9150363 /* LiveBadge.swift */; };
 		BEAA3C178A1EEDAB52974312 /* AudioTapBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF4A7E55163E3E230D076B79 /* AudioTapBridgeTests.swift */; };
 		C1D1527BEBB36F6CD62688DC /* MicButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A7C58D41148EA96169457F3 /* MicButton.swift */; };
@@ -50,6 +51,13 @@
 
 /* Begin PBXContainerItemProxy section */
 		9C1F4466100B9F79D8F8A85C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D976224FB8CA5CD2D989FE02 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7ED400B2CCB752881283BAAD;
+			remoteInfo = vrecorder;
+		};
+		A7A7B2B44CE448020DDAAD37 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D976224FB8CA5CD2D989FE02 /* Project object */;
 			proxyType = 1;
@@ -84,7 +92,9 @@
 		9356CECCE16BD7BA708C0085 /* TranscriptLineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptLineView.swift; sourceTree = "<group>"; };
 		9698B3CBC73ED00016C1FDB9 /* AudioSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionController.swift; sourceTree = "<group>"; };
 		9A3548C4B3F60267E9150363 /* LiveBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveBadge.swift; sourceTree = "<group>"; };
+		A540878C8175986A4646DC6B /* vrecorderUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = vrecorderUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2A1B2B5015586830A3D15DD /* APIKeyEntryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeyEntryModel.swift; sourceTree = "<group>"; };
+		B37859C7D99BDFD8F87BB356 /* LiveScreenUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveScreenUITests.swift; sourceTree = "<group>"; };
 		B50B799EA3EA4F736BC9B5C2 /* OpenAIStatusMappingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIStatusMappingTests.swift; sourceTree = "<group>"; };
 		C923BA1FFC84279540C7315A /* AppleSpeechRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSpeechRecognizer.swift; sourceTree = "<group>"; };
 		CBED95A58A44DF7B749A1C3A /* SettingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsScreen.swift; sourceTree = "<group>"; };
@@ -189,12 +199,21 @@
 			path = config;
 			sourceTree = "<group>";
 		};
+		6BCF225487145C5A2026E3B5 /* vrecorderUITests */ = {
+			isa = PBXGroup;
+			children = (
+				B37859C7D99BDFD8F87BB356 /* LiveScreenUITests.swift */,
+			);
+			path = vrecorderUITests;
+			sourceTree = "<group>";
+		};
 		6DCC63477EECC9AAD5AE22E9 = {
 			isa = PBXGroup;
 			children = (
 				4B7C6658CF889C7EE1C63ACC /* config */,
 				1B58FEBA72C2640F6B0FBBB6 /* vrecorder */,
 				D34E781EA63AC66187622C4C /* vrecorderTests */,
+				6BCF225487145C5A2026E3B5 /* vrecorderUITests */,
 				84F5DF591BFC85ED1321F1CF /* Products */,
 			);
 			sourceTree = "<group>";
@@ -204,6 +223,7 @@
 			children = (
 				FBA761786DBED03C12E8731A /* vrecorder.app */,
 				F8F658EF16861D5479D2B008 /* vrecorderTests.xctest */,
+				A540878C8175986A4646DC6B /* vrecorderUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -257,6 +277,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		59E212FB83C5EC7044CC3AE6 /* vrecorderUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 753B0309EFCC671A84A879B0 /* Build configuration list for PBXNativeTarget "vrecorderUITests" */;
+			buildPhases = (
+				9EA0F0BE8E1BFE88FD5524B0 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				84928AE4942A044F426C3765 /* PBXTargetDependency */,
+			);
+			name = vrecorderUITests;
+			packageProductDependencies = (
+			);
+			productName = vrecorderUITests;
+			productReference = A540878C8175986A4646DC6B /* vrecorderUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		7ED400B2CCB752881283BAAD /* vrecorder */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = B8AFA1C04285416337B3BDA9 /* Build configuration list for PBXNativeTarget "vrecorder" */;
@@ -302,6 +340,11 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					59E212FB83C5EC7044CC3AE6 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+						TestTargetID = 7ED400B2CCB752881283BAAD;
+					};
 					7ED400B2CCB752881283BAAD = {
 						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
@@ -328,6 +371,7 @@
 			targets = (
 				7ED400B2CCB752881283BAAD /* vrecorder */,
 				BDD7E2C58733EF59EAD88C46 /* vrecorderTests */,
+				59E212FB83C5EC7044CC3AE6 /* vrecorderUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -396,9 +440,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		9EA0F0BE8E1BFE88FD5524B0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B776CFE6045F6DF0F9D1949E /* LiveScreenUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		84928AE4942A044F426C3765 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7ED400B2CCB752881283BAAD /* vrecorder */;
+			targetProxy = A7A7B2B44CE448020DDAAD37 /* PBXContainerItemProxy */;
+		};
 		FCE95D3E013C327902F85AD3 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 7ED400B2CCB752881283BAAD /* vrecorder */;
@@ -413,7 +470,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "VRecorder 需要使用麦克风进行实时同声传译。";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "VRecorder 使用语音识别将你的发言实时转写为文字。";
@@ -426,7 +483,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.1;
+				MARKETING_VERSION = 0.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.vrecorder.app;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -449,6 +506,40 @@
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/vrecorder.app/vrecorder";
 			};
 			name = Debug;
+		};
+		8D980DB0E0637BF3810269F3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.vrecorder.app.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = vrecorder;
+			};
+			name = Debug;
+		};
+		97A0326FFFAFCEC2FD91D69E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.vrecorder.app.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = vrecorder;
+			};
+			name = Release;
 		};
 		A3F35121011CA003D8828D3C /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -485,7 +576,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -506,7 +597,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 0.3.1;
+				MARKETING_VERSION = 0.4.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -571,7 +662,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -586,7 +677,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 0.3.1;
+				MARKETING_VERSION = 0.4.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -604,7 +695,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				EXCLUDED_SOURCE_FILE_NAMES = "openai-key.txt";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "VRecorder 需要使用麦克风进行实时同声传译。";
@@ -618,7 +709,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.1;
+				MARKETING_VERSION = 0.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.vrecorder.app;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -633,6 +724,15 @@
 			buildConfigurations = (
 				6394EB642205DD8810EA5303 /* Debug */,
 				B8D45310FF7E0B4E1911951F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		753B0309EFCC671A84A879B0 /* Build configuration list for PBXNativeTarget "vrecorderUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8D980DB0E0637BF3810269F3 /* Debug */,
+				97A0326FFFAFCEC2FD91D69E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

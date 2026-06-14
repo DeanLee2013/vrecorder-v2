@@ -10,8 +10,8 @@ settings:
     SWIFT_VERSION: "6.0"
     SWIFT_STRICT_CONCURRENCY: complete
     GENERATE_INFOPLIST_FILE: "YES"
-    MARKETING_VERSION: "0.3.1"
-    CURRENT_PROJECT_VERSION: "9"
+    MARKETING_VERSION: "0.4.0"
+    CURRENT_PROJECT_VERSION: "10"
     DEVELOPMENT_TEAM: ""
     CODE_SIGN_STYLE: Automatic
 
@@ -28,8 +28,8 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.vrecorder.app
-        MARKETING_VERSION: "0.3.1"
-        CURRENT_PROJECT_VERSION: "9"
+        MARKETING_VERSION: "0.4.0"
+        CURRENT_PROJECT_VERSION: "10"
         GENERATE_INFOPLIST_FILE: "YES"
         INFOPLIST_KEY_UILaunchScreen_Generation: "YES"
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: "YES"
@@ -58,12 +58,27 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.vrecorder.app.tests
 
+  vrecorderUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: vrecorderUITests
+    dependencies:
+      - target: vrecorder
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.vrecorder.app.uitests
+        TEST_TARGET_NAME: vrecorder
+
 schemes:
   vrecorder:
     build:
       targets:
         vrecorder: all
         vrecorderTests: [test]
+        vrecorderUITests: [test]
     test:
       targets:
         - vrecorderTests
+        - vrecorderUITests

@@ -44,6 +44,8 @@ struct SettingsScreen: View {
                         tapRow("API 密钥", value: keyConfigured ? "已配置" : "未配置") {
                             showKeySheet = true
                         }
+                        .accessibilityIdentifier("vr.settings.apiKeyRow")
+                        .accessibilityValue(keyConfigured ? "已配置" : "未配置")
                         toggleRow("流式翻译", $stream, last: true)
                     }
                     group("语音播报") {
