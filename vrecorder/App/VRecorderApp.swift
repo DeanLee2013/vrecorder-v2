@@ -10,12 +10,20 @@ struct VRecorderApp: App {
     // DebugBridge/WI-3 can share the same session) — preserves the stable-identity
     // ownership that fixes scene-phase teardown (audit-G4r2 #2). UI-testing mode is
     // selected from the launch arguments.
-    @State private var env = AppEnvironment(
-        uiTesting: ProcessInfo.processInfo.arguments.contains("-uiTesting"))
+    @State private var env = AppEnvironment(uiTesting: Self.isUITesting)
 
     var body: some Scene {
         WindowGroup {
             RootView(env: env)
         }
+    }
+
+    /// DEBUG-only: Release never reads the launch-arg seam (audit-WI2 #1).
+    private static var isUITesting: Bool {
+        #if DEBUG
+        ProcessInfo.processInfo.arguments.contains("-uiTesting")
+        #else
+        false
+        #endif
     }
 }

@@ -16,7 +16,10 @@ final class AppEnvironment {
     /// Keychain and are order-independent (feature #6). A `-seedKey <value>` arg
     /// pre-configures a key; absent = unconfigured.
     init(uiTesting: Bool = false) {
+        // The UI-test seam exists only in DEBUG — Release ALWAYS uses the real
+        // Keychain (audit-WI2 #1: never ship the launch-arg bypass).
         let store: any APIKeyStoring
+        #if DEBUG
         if uiTesting {
             let args = ProcessInfo.processInfo.arguments
             var seed: [String: String] = [:]
@@ -25,10 +28,11 @@ final class AppEnvironment {
             }
             store = InMemoryAPIKeyStore(seed)
         } else {
-            let keychain = KeychainAPIKeyStore()
-            APIKeyBootstrap.seedIfNeeded(store: keychain)
-            store = keychain
+            store = Self.productionStore()
         }
+        #else
+        store = Self.productionStore()
+        #endif
         self.keyStore = store
 
         let translator = OpenAITranslationEngine(keyProvider: { store.key(for: APIProvider.openAI) })
@@ -37,5 +41,13 @@ final class AppEnvironment {
             translator: translator,
             audio: AudioSessionController()
         )
+    }
+
+    /// The real Keychain-backed store (DEBUG-seeded once). The only store Release
+    /// ever uses.
+    private static func productionStore() -> any APIKeyStoring {
+        let keychain = KeychainAPIKeyStore()
+        APIKeyBootstrap.seedIfNeeded(store: keychain)
+        return keychain
     }
 }

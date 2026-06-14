@@ -54,6 +54,7 @@ Track bugs here. Tell the agent "fix bug #N" to start a fix.
 | 4 | OpenAI 408/504 mapped to provider error, not timeout | `OpenAITranslationEngine` | Medium | FIXED | From bug-#2 audit. HTTP 408/504 should map to `PipelineError.timeout` (test with injected URLSession). GH: #8. |
 | 5 | Recognizer callbacks lack session/segment identity | `AppleSpeechRecognizer` | High | FIXED | From bug-#2 audit. Cancelled task can report after restart → rotate/terminate the new session. Fix: generation token validated in rotateAfterFinal/finish/stop. GH: #9. |
 | 6 | OpenAIStatusMappingTests shared state races under parallel testing | `vrecorderTests` | Medium | FIXED | From feature-#6 WI-1 audit. `nonisolated(unsafe)` static stub state mutated per test → Swift Testing parallel race / flaky. Fix: `.serialized` suite trait or per-request locked state. GH: #16. |
+| 7 | AudioTapBridge takes NSLock + allocates on the render thread | `AudioTapBridge` / `PCMRollover` | Medium | TODO | From feature-#6 WI-2 audit. Render-thread tap takes a lock + allocates + can wait during rollover replay → may block render thread / drop audio. Fix: bounded dedicated queue or lock-free ring; nonblocking tap. Related feature #4. GH: see issue. |
 
 > Interruption auto-resume (related Gate-4 Medium) is tracked as **feature #3**, not a bug.
 
