@@ -54,6 +54,7 @@ Before setting a feature to `PLANNED`, fill in these fields in a sub-section und
 | 1   | MVP 同传管线骨架（同传屏/设置屏 + 本地STT + OpenAI翻译 + Keychain key） | pipeline/ui | High | DONE | Scaffold, retro-registered outside gates 1-2 (course demo). Mirror: no. Pipeline-translate leg verified against live OpenAI; on-device STT needs device verify (Gate 5 deferred). Pre-push Codex audit (prepush-25e2320) found 6H+2M; fixes #3-8 + #1 applied (see Notes). |
 | 2   | Release 内 API 密钥录入页（Keychain 编辑器） | ui/settings | Medium | DONE | Shipped in v0.2.0 (PR #2, merge `1d3644d`). 4 plan-audit + 2 impl-audit rounds. Design bundle `dev-docs/designs/api-key-entry/` (owner-authorized). 31 tests. NOT yet VERIFIED — interactive tap flow needs a manual device pass (evidence `feature-2-20260614.md`, result: partial). Mirror: no. |
 | 3   | 打断后自动暂停/恢复（来电/Siri/AirPods 后续传） | audio/pipeline | Low | TODO | From audit-3 #5 (Medium, non-blocking): 当前打断即 stop()，需重新点麦克风。理想是 paused 态保留观察、interruption-ended `shouldResume` 时自动恢复。演示影响小。Mirror: no. |
+| 4   | 专用 VAD/分段阶段（无间隙轮转，连续传译鲁棒分句） | audio/pipeline | Medium | TODO | From bug-#1 audits: PCMRollover mitigates the common rotation gap but a long gap during sustained speech can still truncate. Robust fix = a dedicated VAD/segmentation stage that rotates recognition with no gap. Needs Gate-1 plan. Mirror: no. |
 
 ### Feature #1 — Notes (retro)
 
