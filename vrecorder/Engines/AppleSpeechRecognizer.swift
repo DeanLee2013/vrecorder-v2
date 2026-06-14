@@ -39,7 +39,11 @@ final class AppleSpeechRecognizer: SpeechRecognizing {
     }
 
     func start(locale: Locale) throws -> AsyncThrowingStream<TranscriptEvent, Error> {
-        AsyncThrowingStream { continuation in
+        // Bounded buffer (bug #4): a stalled consumer can't grow the queue without
+        // limit. Partials are replaceable (the consumer coalesces them), so
+        // dropping the oldest is harmless; 64 is far above the rare final cadence,
+        // so finals are preserved in practice.
+        AsyncThrowingStream(TranscriptEvent.self, bufferingPolicy: .bufferingNewest(64)) { continuation in
             do {
                 try self.begin(locale: locale, continuation: continuation)
             } catch {
@@ -76,7 +80,7 @@ final class AppleSpeechRecognizer: SpeechRecognizing {
     /// The bridge's VAD calls `endAudio()` on a pause → the recognizer emits a
     /// final → we rotate here to the next segment.
     private func startSegment() {
-        guard running, let recognizer else { return }
+        guard running, let recognizer, let continuation else { return }
         let request = SFSpeechAudioBufferRecognitionRequest()
         request.shouldReportPartialResults = true
         // Honor the declared on-device/privacy capability (audit-4 #3).
@@ -84,23 +88,31 @@ final class AppleSpeechRecognizer: SpeechRecognizing {
         self.request = request
         tapBridge.setRequest(request)
         task = recognizer.recognitionTask(with: request) { [weak self] result, error in
-            Task { @MainActor in
-                guard let self, self.running else { return }
-                if let result {
-                    let text = result.bestTranscription.formattedString
-                    if result.isFinal {
-                        if !text.isEmpty { self.continuation?.yield(.final(text)) }
-                        self.task = nil
-                        self.request = nil
-                        self.startSegment()           // rotate → keep interpreting
-                    } else {
-                        self.continuation?.yield(.partial(text))
-                    }
-                } else if let error {
-                    self.finish(throwing: error)
+            // Runs off the main actor. Yield DIRECTLY to the (Sendable) continuation
+            // — no per-callback main-actor Task — so frequent partials can't pile up
+            // unbounded Tasks (bug #4). Yields after finish() are safe no-ops. Only
+            // the rare rotate-on-final / error paths hop to the main actor.
+            if let result {
+                let text = result.bestTranscription.formattedString
+                if result.isFinal {
+                    if !text.isEmpty { continuation.yield(.final(text)) }
+                    Task { @MainActor in self?.rotateAfterFinal() }
+                } else {
+                    continuation.yield(.partial(text))
                 }
+            } else if let error {
+                Task { @MainActor in self?.finish(throwing: error) }
             }
         }
+    }
+
+    /// On the main actor after a final: drop the closed request/task and rotate to
+    /// the next segment (keeps interpreting). No-op once stopped.
+    private func rotateAfterFinal() {
+        guard running else { return }
+        task = nil
+        request = nil
+        startSegment()
     }
 
     /// Finish the stream with the mapped error EXACTLY once. Tears down audio
