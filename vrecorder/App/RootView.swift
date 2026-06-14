@@ -7,10 +7,10 @@ import SwiftUI
 struct RootView: View {
     @State private var showSettings = false
     @Environment(\.scenePhase) private var scenePhase
-    // @State so SwiftUI keeps ONE environment for this view's identity — a plain
-    // stored property is rebuilt on each RootView init, which let scene-phase
-    // teardown stop() a different session than the screen holds (audit-G4r2 #2).
-    @State private var env = AppEnvironment()
+    // Injected from the App, which owns it via @State (one stable environment per
+    // identity — the scene-phase teardown fix, audit-G4r2 #2 — now lifted to the
+    // App so WI-3's DebugBridge shares the same session).
+    let env: AppEnvironment
 
     var body: some View {
         ZStack {

@@ -64,6 +64,7 @@ struct LiveScreen: View {
                     .foregroundStyle(VR.partyBTextDim)
                     .frame(width: 40, height: 40)
             }
+            .accessibilityIdentifier("vr.live.gear")
             Spacer()
             LiveBadge().opacity(session.listening ? 1 : 0)
             Spacer()
@@ -100,6 +101,8 @@ struct LiveScreen: View {
                 Spacer()
                 VStack(spacing: 10) {
                     MicButton(listening: session.listening) { session.toggle() }
+                        .accessibilityIdentifier("vr.live.mic")
+                        .accessibilityValue(session.listening ? "listening" : "idle")
                     Text("为保证同传效果，请靠近麦克风说话")
                         .font(.system(size: VR.FontSize.caption))
                         .foregroundStyle(VR.partyATextDim)
