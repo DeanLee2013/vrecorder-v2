@@ -44,54 +44,65 @@ final class AudioTapBridge: @unchecked Sendable {
     /// inside the gap still triggers endAudio() and segments correctly instead of
     /// merging into the next one (audit-G4 #1). Resets VAD state for the segment.
     func setRequest(_ newRequest: (any AudioBufferSink)?) {
+        // Replay the rollover ATOMICALLY under the lock, before any live render
+        // buffer is accepted, so replay + live audio can't interleave out of
+        // chronological order (audit-G4r2 #1). endAudio() calls are deferred to
+        // after unlock to avoid re-entrancy.
         lock.lock()
         request = newRequest
         hadSpeech = false
         silentSeconds = 0
         let replay = rollover.drain()        // always clear; only replay if installing
+        var deferredEnds: [any AudioBufferSink] = []
+        if newRequest != nil {
+            for buffered in replay {
+                if let toEnd = appendLocked(buffered) { deferredEnds.append(toEnd) }
+            }
+        }
         lock.unlock()
-        guard newRequest != nil else { return }
-        // Re-feed through append() (not append-direct) so VAD/endAudio still apply.
-        for buffered in replay { append(buffered) }
+        for sink in deferredEnds { sink.endAudio() }
     }
 
     /// Called from the render thread for every captured buffer.
     func append(_ buffer: AVAudioPCMBuffer) {
+        lock.lock()
+        let toEnd = appendLocked(buffer)
+        lock.unlock()
+        // endAudio() outside the lock; it triggers the recognizer's final callback,
+        // which rotates to a new segment on the main actor.
+        toEnd?.endAudio()
+    }
+
+    /// Core append + VAD. **Caller must hold `lock`.** Returns the sink to call
+    /// `endAudio()` on AFTER unlocking (utterance closed), else nil.
+    private func appendLocked(_ buffer: AVAudioPCMBuffer) -> (any AudioBufferSink)? {
         let level = Self.rms(buffer)
         let duration = buffer.format.sampleRate > 0
             ? Double(buffer.frameLength) / buffer.format.sampleRate : 0
 
-        lock.lock()
         guard let active = request else {
             // In the rotation gap: keep the audio so the next request can replay
             // it instead of truncating the next utterance (bug #3).
             rollover.add(buffer)
-            lock.unlock()
-            return
+            return nil
         }
         active.append(buffer)
 
-        var closing = false
         if level > silenceRMS {
             hadSpeech = true
             silentSeconds = 0
         } else if hadSpeech {
             silentSeconds += duration
             if silentSeconds >= silenceSecondsToClose {
-                closing = true
                 // Atomic handoff: drop the request NOW so later render callbacks
-                // never append to an ended request (audit-4 #5). The next start()
-                // installs a fresh one.
+                // never append to an ended request (audit-4 #5).
                 request = nil
                 hadSpeech = false
                 silentSeconds = 0
+                return active
             }
         }
-        lock.unlock()
-
-        // endAudio() outside the lock; it triggers the recognizer's final
-        // callback, which rotates to a new segment on the main actor.
-        if closing { active.endAudio() }
+        return nil
     }
 
     static func rms(_ buffer: AVAudioPCMBuffer) -> Float {

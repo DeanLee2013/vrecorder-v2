@@ -9,9 +9,13 @@ import Testing
 
 private final class MockSink: AudioBufferSink, @unchecked Sendable {
     private let lock = NSLock()
-    private(set) var appended = 0
     private(set) var endedCount = 0
-    func append(_ buffer: AVAudioPCMBuffer) { lock.withLock { appended += 1 } }
+    private(set) var tags: [Float] = []          // first sample of each appended buffer, in order
+    var appended: Int { lock.withLock { tags.count } }
+    func append(_ buffer: AVAudioPCMBuffer) {
+        let tag = buffer.floatChannelData?[0][0] ?? .nan
+        lock.withLock { tags.append(tag) }
+    }
     func endAudio() { lock.withLock { endedCount += 1 } }
 }
 
@@ -52,6 +56,18 @@ struct AudioTapBridgeTests {
         // utterance (it isn't merged into the following one — the audit's concern).
         for _ in 0..<40 { bridge.append(buffer(level: 0.0)) }
         #expect(sink.endedCount >= 1)
+    }
+
+    @Test func replayThenLivePreservesChronologicalOrder() {
+        let bridge = AudioTapBridge()
+        // Rotation gap: two distinct buffers captured (tags 0.10, 0.11).
+        bridge.append(buffer(level: 0.10))
+        bridge.append(buffer(level: 0.11))
+        let sink = MockSink()
+        bridge.setRequest(sink)                 // atomic replay under the lock...
+        bridge.append(buffer(level: 0.12))      // ...then a live buffer
+        // Order must be replay-then-live, never interleaved (audit-G4r2 #1).
+        #expect(sink.tags == [0.10, 0.11, 0.12])
     }
 
     @Test func setRequestNilClearsRolloverNoReplay() {
