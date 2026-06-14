@@ -10,7 +10,9 @@ struct SettingsScreen: View {
     /// Reflects real Keychain state — never hardcode "已配置" (audit #2).
     var apiKeyConfigured: Bool = false
 
-    @State private var engine = "Claude"
+    // Only the OpenAI engine is wired today; don't offer a selection the app
+    // can't honor (audit-4 #1). Re-add "Claude" when ClaudeTranslationEngine exists.
+    @State private var engine = "OpenAI"
     @State private var stream = true
     @State private var autoSpeak = true
     @State private var speed = "1.0×"
@@ -23,7 +25,7 @@ struct SettingsScreen: View {
             ScrollView {
                 VStack(spacing: 24) {
                     group("翻译引擎") {
-                        cycleRow("翻译服务", $engine, ["Claude", "OpenAI"])
+                        cycleRow("翻译服务", $engine, ["OpenAI"])
                         navRow("API 密钥", value: apiKeyConfigured ? "已配置" : "未配置")
                         toggleRow("流式翻译", $stream, last: true)
                     }

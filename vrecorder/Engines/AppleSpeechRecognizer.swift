@@ -11,9 +11,13 @@ import Speech
 
 @MainActor
 final class AppleSpeechRecognizer: SpeechRecognizing {
-    nonisolated let capabilities = SpeechCapabilities(
-        supportsOnDevice: true, latency: .onDevice,
-        supportedLocales: [Locale(identifier: "zh-CN"), Locale(identifier: "en-US")])
+    /// Reported from the actual recognizer, not assumed (audit-4 #3).
+    nonisolated var capabilities: SpeechCapabilities {
+        let onDevice = SFSpeechRecognizer(locale: Locale(identifier: "zh-CN"))?.supportsOnDeviceRecognition ?? false
+        return SpeechCapabilities(
+            supportsOnDevice: onDevice, latency: onDevice ? .onDevice : .cloud,
+            supportedLocales: [Locale(identifier: "zh-CN"), Locale(identifier: "en-US")])
+    }
 
     private let audioEngine = AVAudioEngine()
     private let tapBridge = AudioTapBridge()
@@ -75,6 +79,8 @@ final class AppleSpeechRecognizer: SpeechRecognizing {
         guard running, let recognizer else { return }
         let request = SFSpeechAudioBufferRecognitionRequest()
         request.shouldReportPartialResults = true
+        // Honor the declared on-device/privacy capability (audit-4 #3).
+        if recognizer.supportsOnDeviceRecognition { request.requiresOnDeviceRecognition = true }
         self.request = request
         tapBridge.setRequest(request)
         task = recognizer.recognitionTask(with: request) { [weak self] result, error in
@@ -101,8 +107,7 @@ final class AppleSpeechRecognizer: SpeechRecognizing {
     /// without finishing the continuation first (a normal finish would swallow
     /// the error — audit Medium).
     private func finish(throwing error: Error) {
-        let mapped: PipelineError = (error as? PipelineError)
-            ?? .providerError("recognition: \((error as NSError).code)")
+        let mapped: PipelineError = (error as? PipelineError) ?? .recognitionFailed
         teardownAudio()
         let cont = continuation
         continuation = nil

@@ -6,6 +6,7 @@ import SwiftUI
 
 struct RootView: View {
     @State private var showSettings = false
+    @Environment(\.scenePhase) private var scenePhase
     private let env = AppEnvironment()
 
     var body: some View {
@@ -22,5 +23,10 @@ struct RootView: View {
         }
         .animation(.easeOut(duration: 0.42), value: showSettings)
         .preferredColorScheme(.dark)
+        .onChange(of: scenePhase) { _, phase in
+            // Don't leave the mic + audio session live in the background
+            // (audit-4 #6) — tear down explicitly instead of relying on the OS.
+            if phase == .background { env.session.stop() }
+        }
     }
 }

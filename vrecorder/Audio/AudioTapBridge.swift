@@ -15,13 +15,14 @@ final class AudioTapBridge: @unchecked Sendable {
     private let lock = NSLock()
     private var request: SFSpeechAudioBufferRecognitionRequest?
     private var hadSpeech = false
-    private var silentFrames = 0
+    private var silentSeconds: Double = 0
 
     /// RMS below this counts as silence; tuned for close-mic speech.
     private let silenceRMS: Float = 0.012
-    /// Consecutive silent tap callbacks after speech that close an utterance
-    /// (~0.6–0.8s at the default tap cadence).
-    private let silentFramesToClose = 9
+    /// Silence DURATION after speech that closes an utterance. Measured in real
+    /// seconds (frameLength / sampleRate) so it's independent of buffer size and
+    /// sample rate — a fixed callback count would be ~0.2s at 48 kHz (audit-4 #4).
+    private let silenceSecondsToClose: Double = 0.7
 
     /// Install/replace the active request (main actor). Resets VAD state so the
     /// new segment starts fresh.
@@ -29,37 +30,41 @@ final class AudioTapBridge: @unchecked Sendable {
         lock.lock()
         request = newRequest
         hadSpeech = false
-        silentFrames = 0
+        silentSeconds = 0
         lock.unlock()
     }
 
     /// Called from the render thread for every captured buffer.
     func append(_ buffer: AVAudioPCMBuffer) {
+        let level = Self.rms(buffer)
+        let duration = buffer.format.sampleRate > 0
+            ? Double(buffer.frameLength) / buffer.format.sampleRate : 0
+
         lock.lock()
-        let active = request
-        lock.unlock()
-        guard let active else { return }
+        guard let active = request else { lock.unlock(); return }
         active.append(buffer)
 
-        let level = Self.rms(buffer)
-        lock.lock()
-        var shouldEnd = false
+        var closing = false
         if level > silenceRMS {
             hadSpeech = true
-            silentFrames = 0
+            silentSeconds = 0
         } else if hadSpeech {
-            silentFrames += 1
-            if silentFrames >= silentFramesToClose {
+            silentSeconds += duration
+            if silentSeconds >= silenceSecondsToClose {
+                closing = true
+                // Atomic handoff: drop the request NOW so later render callbacks
+                // never append to an ended request (audit-4 #5). The next start()
+                // installs a fresh one.
+                request = nil
                 hadSpeech = false
-                silentFrames = 0
-                shouldEnd = true
+                silentSeconds = 0
             }
         }
         lock.unlock()
 
         // endAudio() outside the lock; it triggers the recognizer's final
         // callback, which rotates to a new segment on the main actor.
-        if shouldEnd { active.endAudio() }
+        if closing { active.endAudio() }
     }
 
     static func rms(_ buffer: AVAudioPCMBuffer) -> Float {

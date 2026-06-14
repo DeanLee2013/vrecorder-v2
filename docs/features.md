@@ -86,3 +86,14 @@ new features that WILL go through gates 1-6.
 - #8 mic vs speech-recognition denial are distinct errors + messages.
 - #2 → split out as **feature #2** (Release key-entry UI, BLOCKED: needs-design).
   The Settings row now reflects real Keychain state instead of hardcoding "已配置".
+
+**Audit rounds 2–4** (artifacts `prepush-1f8798f / 6211616 / f62e8fa`): a further
+~15 findings fixed — sequential bounded translation queue, error finishes the
+stream exactly once, protocol-typed engines (deterministic pipeline tests),
+partial-id in-place transition, AudioTapBridge thread-safe VAD with
+duration-based silence + atomic request handoff, on-device recognition enforced,
+Release key resource excluded from the bundle, scenePhase background stop,
+distinct recognition error. **Residual:** Release key-entry UI (feature #2,
+design-blocked, rule 51) keeps the gate from PASS, so the scaffold ships via
+documented `--no-verify` bypass — see **ADR-001**. Mediums (route
+`.newDeviceAvailable`, bounded partial ingress) + feature #3 tracked, non-blocking.
