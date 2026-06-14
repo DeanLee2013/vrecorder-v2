@@ -36,6 +36,12 @@ scripts/
   run-codex.sh             # bounded, stdin-isolated Codex runner (rule 53)
   run-tests.sh             # bounded xcodebuild test runner (rule 52)
   git-hooks/pre-push       # the commit-time audit gate
+vrecorder/                 # app source (Swift 6 / SwiftUI)
+  App/                     # entry + composition root (AppEnvironment)
+  Views/  DesignSystem/    # LiveScreen / SettingsScreen + design tokens
+  Engines/  Audio/  Security/   # STT + translation protocols, audio session, Keychain
+  Models/                  # LiveSessionModel + TranscriptLine
+project.yml                # xcodegen source of truth (run `xcodegen generate`)
 docs/
   features.md bugs.md tasks.md   # the living trackers (cron fuel)
   architecture.md          # the fact source
@@ -49,4 +55,7 @@ dev-docs/
 ## How to drive it
 See the cold-start tutorial: `dev-docs/冷启动手册-小白版-从初始化到无人值守.html`.
 
-Status: bootstrapped governance skeleton; **no app code yet** (M0).
+Status: **M1** — MVP scaffold landed (feature #1): design-faithful LiveScreen /
+SettingsScreen, on-device STT + OpenAI translation behind protocols, Keychain
+key, demo-simulator fallback. 9 unit tests green; live translation verified.
+Next: Stage 3 (settings persistence, TTS) through the full 6-gate flow.

@@ -1,0 +1,44 @@
+/* VRecorder — typography tokens
+   Latin: Inter (self-hosted, tokens/fonts.css) with SF Pro fallback.
+   CJK: PingFang SC / system fallbacks. Serif: Source Serif 4 (editorial). */
+
+:root {
+  /* ── Families ──────────────────────────────────────────────── */
+  --font-ui: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text",
+             "PingFang SC", "Hiragino Sans GB", "Noto Sans SC",
+             "Microsoft YaHei", "Helvetica Neue", sans-serif;
+  --font-display: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display",
+             "PingFang SC", "Hiragino Sans GB", "Noto Sans SC",
+             "Microsoft YaHei", "Helvetica Neue", sans-serif;
+  --font-serif: "Source Serif 4", "Songti SC", "Noto Serif SC", Georgia, serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* ── Scale (iOS-anchored, px) ──────────────────────────────── */
+  --text-caption2: 11px;   /* timestamps, badges */
+  --text-caption: 13px;    /* language labels, helper text */
+  --text-subhead: 15px;    /* list secondary, buttons-sm */
+  --text-body: 17px;       /* default body / inputs / buttons */
+  --text-title3: 20px;     /* card titles */
+  --text-title2: 22px;     /* section titles */
+  --text-title1: 28px;     /* screen titles */
+  --text-large-title: 34px;/* page hero */
+
+  /* Live-subtitle scale — interpretation text is read at arm's length */
+  --text-live-partial: 22px;  /* in-progress (partial) line */
+  --text-live-final: 30px;    /* committed (final) line */
+  --text-live-history: 17px;  /* scrolled-back lines */
+
+  /* ── Line heights ──────────────────────────────────────────── */
+  --leading-tight: 1.2;
+  --leading-normal: 1.4;
+  --leading-relaxed: 1.5;
+
+  /* ── Weights ───────────────────────────────────────────────── */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* ── Tracking ──────────────────────────────────────────────── */
+  --tracking-caps: 0.06em; /* uppercase labels (LIVE, language codes) */
+}

@@ -51,3 +51,49 @@ Before setting a feature to `PLANNED`, fill in these fields in a sub-section und
 
 | #   | Summary | Area | Priority | Status | Notes |
 | --- | ------- | ---- | -------- | ------ | ----- |
+| 1   | MVP 同传管线骨架（同传屏/设置屏 + 本地STT + OpenAI翻译 + Keychain key） | pipeline/ui | High | DONE | Scaffold, retro-registered outside gates 1-2 (course demo). Mirror: no. Pipeline-translate leg verified against live OpenAI; on-device STT needs device verify (Gate 5 deferred). Pre-push Codex audit (prepush-25e2320) found 6H+2M; fixes #3-8 + #1 applied (see Notes). |
+| 2   | Release 内 API 密钥录入页（Keychain 编辑器） | ui/settings | Medium | TODO | BLOCKED: needs-design. From audit #2: Release 无 config 文件，密钥行不能只读硬编码；需密钥录入界面，但设计稿未覆盖该页（rule 51）。DEBUG 走 config seed 不受影响。Mirror: no. |
+| 3   | 打断后自动暂停/恢复（来电/Siri/AirPods 后续传） | audio/pipeline | Low | TODO | From audit-3 #5 (Medium, non-blocking): 当前打断即 stop()，需重新点麦克风。理想是 paused 态保留观察、interruption-ended `shouldResume` 时自动恢复。演示影响小。Mirror: no. |
+
+### Feature #1 — Notes (retro)
+
+Built as the initial environment/scaffold, not through the formal 6-gate flow
+(no Gate-1 plan / Gate-2 plan audit — code preceded planning here, recorded
+honestly). What exists:
+
+- **Design-faithful UI**: LiveScreen (ink/violet split, water surface, mic
+  button), SettingsScreen (light grouped list). From `design/`.
+- **Engine abstraction**: `SpeechRecognizing` / `TranslationEngine` protocols;
+  `AppleSpeechRecognizer` (on-device) + `OpenAITranslationEngine` (cloud).
+- **Pipeline**: mic → 中文 partial/final → per-final OpenAI translate → English
+  panel; demo simulator fallback (no network).
+- **Secrets**: Keychain store, DEBUG-seeded from `config/openai-key.txt`.
+
+Verification done: 11 unit tests green; live OpenAI translation confirmed
+(`重庆火锅…` → English). **Outstanding (future gate 5)**: on-device mic STT
+end-to-end on a real device; settings persistence + TTS (Stage 3) tracked as
+new features that WILL go through gates 1-6.
+
+**Audit fixes (pre-push Codex `prepush-25e2320`, 6 High + 2 Medium):**
+- #1 continuous interpretation — recognizer now rotates recognition segments on
+  each final instead of stopping; one session handles many utterances.
+- #3 session-generation token invalidates stale async paths on stop/restart.
+- #4 translation tasks owned, cancelled on stop, committed in source order.
+- #5 `AudioSessionController` exposes interruption/route events; session stops on
+  interruption-began / route loss (resume requires an explicit re-tap).
+- #6 teardown always deactivates `AVAudioSession` (no leftover ducking).
+- #7 recognition errors finish the stream with a mapped `PipelineError`.
+- #8 mic vs speech-recognition denial are distinct errors + messages.
+- #2 → split out as **feature #2** (Release key-entry UI, BLOCKED: needs-design).
+  The Settings row now reflects real Keychain state instead of hardcoding "已配置".
+
+**Audit rounds 2–4** (artifacts `prepush-1f8798f / 6211616 / f62e8fa`): a further
+~15 findings fixed — sequential bounded translation queue, error finishes the
+stream exactly once, protocol-typed engines (deterministic pipeline tests),
+partial-id in-place transition, AudioTapBridge thread-safe VAD with
+duration-based silence + atomic request handoff, on-device recognition enforced,
+Release key resource excluded from the bundle, scenePhase background stop,
+distinct recognition error. **Residual:** Release key-entry UI (feature #2,
+design-blocked, rule 51) keeps the gate from PASS, so the scaffold ships via
+documented `--no-verify` bypass — see **ADR-001**. Mediums (route
+`.newDeviceAvailable`, bounded partial ingress) + feature #3 tracked, non-blocking.

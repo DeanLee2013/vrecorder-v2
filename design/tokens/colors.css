@@ -1,0 +1,98 @@
+/* VRecorder — color tokens
+   Dark-first: live interpretation happens on an ink "stage".
+   Light scope available via [data-theme="light"] for browsing surfaces. */
+
+:root {
+  /* ── Ink scale (neutral, slightly violet-cast) ─────────────── */
+  --ink-950: #07070C;
+  --ink-900: #0C0C14;
+  --ink-800: #14141F;
+  --ink-700: #1C1C2A;
+  --ink-600: #2A2A3C;
+  --ink-500: #3F3F55;
+  --ink-400: #6B6B85;
+  --ink-300: #9494AE;
+  --ink-200: #C5C5D8;
+  --ink-100: #E9E9F2;
+  --ink-50:  #F7F7FB;
+
+  /* ── Violet (brand accent — "speech energy") ───────────────── */
+  --violet-700: #4A2EE0;
+  --violet-600: #5B3DF5;
+  --violet-500: #7050FF;
+  --violet-400: #8F76FF;
+  --violet-300: #B3A3FF;
+  --violet-200: #D5CCFF;
+  --violet-100: #ECE8FF;
+
+  /* ── Aqua (listening / incoming voice) ─────────────────────── */
+  --aqua-600: #0FA396;
+  --aqua-500: #2BD9C8;
+  --aqua-400: #6FE8DC;
+  --aqua-200: #C2F6F0;
+
+  /* ── Status ────────────────────────────────────────────────── */
+  --red-500: #FF5C5C;
+  --amber-500: #FFB23E;
+  --green-500: #3DD68C;
+
+  /* ── Semantic: surfaces ────────────────────────────────────── */
+  --surface-app: var(--ink-950);
+  --surface-card: var(--ink-800);
+  --surface-raised: var(--ink-700);
+  --surface-sheet: var(--ink-900);
+  --surface-input: var(--ink-700);
+
+  /* Two-party split (live interpretation) */
+  --party-a-surface: var(--violet-600);   /* you / source speaker panel */
+  --party-a-text: #FFFFFF;
+  --party-a-text-dim: rgba(255, 255, 255, 0.62);
+  --party-b-surface: var(--ink-950);      /* counterpart panel */
+  --party-b-text: var(--ink-100);
+  --party-b-text-dim: var(--ink-400);
+
+  /* ── Semantic: text ────────────────────────────────────────── */
+  --text-primary: var(--ink-100);
+  --text-secondary: var(--ink-300);
+  --text-faint: var(--ink-400);
+  --text-on-accent: #FFFFFF;
+  --text-accent: var(--violet-400);
+  --text-live: var(--aqua-500);
+
+  /* ── Semantic: interactive ─────────────────────────────────── */
+  --accent: var(--violet-500);
+  --accent-strong: var(--violet-600);
+  --accent-soft: rgba(112, 80, 255, 0.16);
+  --live: var(--aqua-500);
+  --live-soft: rgba(43, 217, 200, 0.14);
+  --positive: var(--green-500);
+  --caution: var(--amber-500);
+  --critical: var(--red-500);
+  --critical-soft: rgba(255, 92, 92, 0.14);
+
+  /* ── Hairlines & overlays ──────────────────────────────────── */
+  --hairline: rgba(233, 233, 242, 0.10);
+  --hairline-strong: rgba(233, 233, 242, 0.18);
+  --overlay-scrim: rgba(7, 7, 12, 0.64);
+}
+
+/* Light scope — browsing surfaces (history, settings, marketing) */
+[data-theme="light"] {
+  --surface-app: var(--ink-50);
+  --surface-card: #FFFFFF;
+  --surface-raised: #FFFFFF;
+  --surface-sheet: #FFFFFF;
+  --surface-input: #EDEDF4;
+
+  --text-primary: var(--ink-900);
+  --text-secondary: var(--ink-500);
+  --text-faint: var(--ink-400);
+  --text-accent: var(--violet-600);
+
+  --accent-soft: rgba(112, 80, 255, 0.10);
+  --live-soft: rgba(15, 163, 150, 0.10);
+
+  --hairline: rgba(12, 12, 20, 0.08);
+  --hairline-strong: rgba(12, 12, 20, 0.14);
+  --overlay-scrim: rgba(12, 12, 20, 0.40);
+}

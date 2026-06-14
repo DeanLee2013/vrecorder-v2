@@ -1,0 +1,22 @@
+/* VRecorder — spacing & layout tokens (4px base) */
+
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Layout */
+  --inset-screen: 20px;      /* horizontal screen padding */
+  --gap-stack: 12px;         /* default vertical rhythm between items */
+  --gap-bubble: 10px;        /* between chat bubbles */
+  --height-control: 44px;    /* min hit target */
+  --height-control-lg: 56px; /* primary actions, hold-to-talk bar */
+  --width-readable: 560px;   /* max line width for subtitles on tablets */
+}

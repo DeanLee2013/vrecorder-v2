@@ -1,0 +1,28 @@
+/* VRecorder — radii, borders, shadows, blur */
+
+:root {
+  /* ── Corner radii ──────────────────────────────────────────── */
+  --radius-control: 12px;   /* buttons, inputs, chips */
+  --radius-card: 16px;      /* cards, bubbles */
+  --radius-sheet: 28px;     /* modal sheets, fullscreen panels */
+  --radius-pill: 999px;     /* hold-to-talk pills, badges, mic button */
+
+  /* ── Shadows (dark-first: soft, low, never harsh) ──────────── */
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-sheet: 0 -8px 40px rgba(0, 0, 0, 0.5);
+  --shadow-pop: 0 8px 32px rgba(0, 0, 0, 0.45);
+
+  /* Accent glow — used ONLY on active voice elements (mic, waveform) */
+  --glow-accent: 0 0 0 6px rgba(112, 80, 255, 0.18), 0 0 32px rgba(112, 80, 255, 0.35);
+  --glow-live: 0 0 0 6px rgba(43, 217, 200, 0.16), 0 0 28px rgba(43, 217, 200, 0.30);
+
+  /* ── Blur ──────────────────────────────────────────────────── */
+  --blur-sheet: 24px;       /* sheet / HUD backdrop-filter */
+  --blur-bar: 16px;         /* floating bars over content */
+}
+
+[data-theme="light"] {
+  --shadow-card: 0 1px 4px rgba(12, 12, 20, 0.08), 0 4px 16px rgba(12, 12, 20, 0.06);
+  --shadow-sheet: 0 -8px 40px rgba(12, 12, 20, 0.16);
+  --shadow-pop: 0 8px 32px rgba(12, 12, 20, 0.14);
+}
