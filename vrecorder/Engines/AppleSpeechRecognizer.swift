@@ -25,6 +25,8 @@ final class AppleSpeechRecognizer: SpeechRecognizing {
     private var task: SFSpeechRecognitionTask?
     private var recognizer: SFSpeechRecognizer?
     private var continuation: AsyncThrowingStream<TranscriptEvent, Error>.Continuation?
+    private var coalescer: RecognitionEventCoalescer?
+    private var pumpTask: Task<Void, Never>?
     private var running = false
 
     /// Request speech + mic permission. Throws distinct errors so the UI can give
@@ -40,26 +42,41 @@ final class AppleSpeechRecognizer: SpeechRecognizing {
 
     func start(locale: Locale) throws -> AsyncThrowingStream<TranscriptEvent, Error> {
         AsyncThrowingStream { continuation in
-            do {
-                try self.begin(locale: locale, continuation: continuation)
-            } catch {
-                continuation.finish(throwing: error)
-                return
-            }
+            self.continuation = continuation
             continuation.onTermination = { [weak self] _ in
                 Task { @MainActor in self?.stop() }
+            }
+            do {
+                try self.begin(locale: locale)
+            } catch {
+                // Roll back any partial startup (tap/engine) before failing so a
+                // failed begin() leaves no live audio (audit bug#2 Medium).
+                self.teardownAudio()
+                let cont = self.continuation
+                self.continuation = nil
+                cont?.finish(throwing: error)
             }
         }
     }
 
-    private func begin(locale: Locale,
-                       continuation: AsyncThrowingStream<TranscriptEvent, Error>.Continuation) throws {
+    private func begin(locale: Locale) throws {
         guard let recognizer = SFSpeechRecognizer(locale: locale), recognizer.isAvailable else {
             throw PipelineError.recognizerUnavailable
         }
         self.recognizer = recognizer
-        self.continuation = continuation
         self.running = true
+
+        // One pump task drains the coalescer into the output stream: partials
+        // coalesce to the latest, finals are never dropped (bug #2 High). The
+        // continuation is Sendable; capture it so the pump never touches self.
+        let coalescer = RecognitionEventCoalescer()
+        self.coalescer = coalescer
+        let output = continuation
+        pumpTask = Task {
+            for await _ in coalescer.wakeups {
+                for event in coalescer.drain() { output?.yield(event) }
+            }
+        }
 
         let input = audioEngine.inputNode
         let format = input.outputFormat(forBus: 0)
@@ -76,7 +93,7 @@ final class AppleSpeechRecognizer: SpeechRecognizing {
     /// The bridge's VAD calls `endAudio()` on a pause → the recognizer emits a
     /// final → we rotate here to the next segment.
     private func startSegment() {
-        guard running, let recognizer else { return }
+        guard running, let recognizer, let coalescer else { return }
         let request = SFSpeechAudioBufferRecognitionRequest()
         request.shouldReportPartialResults = true
         // Honor the declared on-device/privacy capability (audit-4 #3).
@@ -84,23 +101,30 @@ final class AppleSpeechRecognizer: SpeechRecognizing {
         self.request = request
         tapBridge.setRequest(request)
         task = recognizer.recognitionTask(with: request) { [weak self] result, error in
-            Task { @MainActor in
-                guard let self, self.running else { return }
-                if let result {
-                    let text = result.bestTranscription.formattedString
-                    if result.isFinal {
-                        if !text.isEmpty { self.continuation?.yield(.final(text)) }
-                        self.task = nil
-                        self.request = nil
-                        self.startSegment()           // rotate → keep interpreting
-                    } else {
-                        self.continuation?.yield(.partial(text))
-                    }
-                } else if let error {
-                    self.finish(throwing: error)
+            // Runs off the main actor. PUSH to the (Sendable) coalescer — no
+            // per-callback main-actor Task, partials coalesce, finals never drop
+            // (bug #2). Only the rare rotate-on-final / error paths hop to main.
+            if let result {
+                let text = result.bestTranscription.formattedString
+                if result.isFinal {
+                    if !text.isEmpty { coalescer.push(.final(text)) }
+                    Task { @MainActor in self?.rotateAfterFinal() }
+                } else {
+                    coalescer.push(.partial(text))
                 }
+            } else if let error {
+                Task { @MainActor in self?.finish(throwing: error) }
             }
         }
+    }
+
+    /// On the main actor after a final: drop the closed request/task and rotate to
+    /// the next segment (keeps interpreting). No-op once stopped.
+    private func rotateAfterFinal() {
+        guard running else { return }
+        task = nil
+        request = nil
+        startSegment()
     }
 
     /// Finish the stream with the mapped error EXACTLY once. Tears down audio
@@ -116,6 +140,10 @@ final class AppleSpeechRecognizer: SpeechRecognizing {
 
     /// Stop audio + recognition without finishing the stream. Idempotent.
     private func teardownAudio() {
+        // Always tear down the pump/coalescer (even if begin() failed before
+        // running flipped) so no drain task leaks.
+        pumpTask?.cancel(); pumpTask = nil
+        coalescer?.finish(); coalescer = nil
         guard running else { return }
         running = false
         audioEngine.inputNode.removeTap(onBus: 0)
