@@ -58,6 +58,7 @@ Before setting a feature to `PLANNED`, fill in these fields in a sub-section und
 | 5   | 仅转写模式（不翻译，只上屏转写） | settings/pipeline | Low | TODO | Settings toggle exists (designed) but is a no-op; wire into LiveSessionModel to bypass translation. Disable the toggle until implemented. GH: #10. Mirror: no. |
 | 6   | 验证 harness（XCUITest target + DebugBridge + UI-test 隔离） | tooling/test | High | IN PROGRESS | Plan `dev-docs/plans/20260615-feature-6-verification-harness.md` (r4, Gate-2 audit 3 rounds → rule-47 cap). 4 WIs: 模型 fixture API / UITest target+a11y+launch-mode / DebugBridge+plist+lifecycle / feature#2 UI 冒烟+harness 证据。**不**含 idb 手势驱动（拆为 feature #7）。GH: #13. Mirror: no. |
 | 7   | idb 手势驱动 fallback（sim-tap.sh + sim-gesture-driver 文档） | tooling/test | Low | TODO | 从 feature #6 拆出：XCUITest 的 tap/typeText 覆盖 #6；idb 提供 XCUITest 无法表达的手势（多指/精确滑动）。需 idb 安装。GH issue filed. Mirror: no. |
+| 8   | 设置项持久化 + 接线（开关真正生效） | settings/persistence | Medium | TODO | From feature-#6 WI-1 audit: 设置项全是 local @State 空操作，重建即丢、不触达 session/翻译/TTS/持久化；清空翻译记录空动作。用持久化设置模型(UserDefaults)接线或禁用未实现控件。feature #5(仅转写)是其子集。GH: #17. Mirror: no. |
 
 ### Feature #1 — Notes (retro)
 

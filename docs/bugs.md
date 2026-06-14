@@ -53,6 +53,7 @@ Track bugs here. Tell the agent "fix bug #N" to start a fix.
 | 3 | AirPods/Bluetooth mic unavailable + route-add ignored | `AudioSessionController` | Medium | FIXED | From bug-#1 Gate-4 audit. `.playAndRecord` omits `.allowBluetoothHFP`; only `.oldDeviceUnavailable` handled. Fix: add BT option + handle `.newDeviceAvailable` (reconfigure/restart). GH: #5. |
 | 4 | OpenAI 408/504 mapped to provider error, not timeout | `OpenAITranslationEngine` | Medium | FIXED | From bug-#2 audit. HTTP 408/504 should map to `PipelineError.timeout` (test with injected URLSession). GH: #8. |
 | 5 | Recognizer callbacks lack session/segment identity | `AppleSpeechRecognizer` | High | FIXED | From bug-#2 audit. Cancelled task can report after restart → rotate/terminate the new session. Fix: generation token validated in rotateAfterFinal/finish/stop. GH: #9. |
+| 6 | OpenAIStatusMappingTests shared state races under parallel testing | `vrecorderTests` | Medium | TODO | From feature-#6 WI-1 audit. `nonisolated(unsafe)` static stub state mutated per test → Swift Testing parallel race / flaky. Fix: `.serialized` suite trait or per-request locked state. GH: #16. |
 
 > Interruption auto-resume (related Gate-4 Medium) is tracked as **feature #3**, not a bug.
 
