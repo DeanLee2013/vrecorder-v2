@@ -7,8 +7,12 @@ import SwiftUI
 
 struct SettingsScreen: View {
     let onBack: () -> Void
-    /// Reflects real Keychain state — never hardcode "已配置" (audit #2).
-    var apiKeyConfigured: Bool = false
+    private let store: any APIKeyStoring
+
+    /// Reflects real Keychain state — refreshed when the key-entry sheet closes
+    /// (single refresh path, audit-2 #3/#6). Never hardcode "已配置".
+    @State private var keyConfigured: Bool
+    @State private var showKeySheet = false
 
     // Only the OpenAI engine is wired today; don't offer a selection the app
     // can't honor (audit-4 #1). Re-add "Claude" when ClaudeTranslationEngine exists.
@@ -19,6 +23,12 @@ struct SettingsScreen: View {
     @State private var subSize = "标准"
     @State private var transcribeOnly = false
 
+    init(onBack: @escaping () -> Void, store: any APIKeyStoring) {
+        self.onBack = onBack
+        self.store = store
+        _keyConfigured = State(initialValue: store.key(for: APIProvider.openAI) != nil)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
@@ -26,7 +36,9 @@ struct SettingsScreen: View {
                 VStack(spacing: 24) {
                     group("翻译引擎") {
                         cycleRow("翻译服务", $engine, ["OpenAI"])
-                        navRow("API 密钥", value: apiKeyConfigured ? "已配置" : "未配置")
+                        tapRow("API 密钥", value: keyConfigured ? "已配置" : "未配置") {
+                            showKeySheet = true
+                        }
                         toggleRow("流式翻译", $stream, last: true)
                     }
                     group("语音播报") {
@@ -50,6 +62,11 @@ struct SettingsScreen: View {
         }
         .background(VR.surfaceApp)
         .ignoresSafeArea(edges: .bottom)
+        .sheet(isPresented: $showKeySheet, onDismiss: {
+            keyConfigured = store.key(for: APIProvider.openAI) != nil
+        }) {
+            APIKeyEntryView(store: store, onClose: { showKeySheet = false })
+        }
     }
 
     private var header: some View {
@@ -100,6 +117,19 @@ struct SettingsScreen: View {
                 Text(value).foregroundStyle(VR.textFaint)
                 Image(systemName: "chevron.right").font(.system(size: 14)).foregroundStyle(VR.textFaint)
             }.font(.system(size: VR.FontSize.body))
+        }
+    }
+
+    private func tapRow(_ label: String, value: String, last: Bool = false, _ action: @escaping () -> Void) -> some View {
+        rowChrome(last) {
+            Button(action: action) {
+                HStack {
+                    Text(label).foregroundStyle(VR.textPrimaryLight)
+                    Spacer()
+                    Text(value).foregroundStyle(VR.textFaint)
+                    Image(systemName: "chevron.right").font(.system(size: 14)).foregroundStyle(VR.textFaint)
+                }.font(.system(size: VR.FontSize.body)).contentShape(Rectangle())
+            }.buttonStyle(.plain)
         }
     }
 

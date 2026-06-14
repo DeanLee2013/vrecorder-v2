@@ -45,7 +45,8 @@ network) for course demos / offline fallback.
 | `AppleSpeechRecognizer` | On-device `SpeechRecognizing` (SFSpeechRecognizer + AVAudioEngine), emits partial/final |
 | `OpenAITranslationEngine` | `TranslationEngine` over OpenAI Chat Completions; pure request/parse helpers are unit-tested |
 | `AudioSessionController` | Single owner of `AVAudioSession` config + interruption handling |
-| `KeychainAPIKeyStore` | `APIKeyStoring` over the Keychain; DEBUG-seeded from bundled `config/openai.key` |
+| `KeychainAPIKeyStore` | `APIKeyStoring` over the Keychain (atomic update→add via injectable `KeychainOps`); DEBUG-seeded from bundled `config/openai-key.txt` |
+| `APIKeyEntryModel` | `@MainActor @Observable` view-model for the Settings → API-key sheet; format-agnostic validation + masking, atomic save/clear over `APIKeyStoring` |
 
 ## Key design patterns
 
