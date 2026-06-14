@@ -56,6 +56,10 @@ network) for course demos / offline fallback.
 - **Replaceable partials**: a `.partial` line is replaced in place; `.final` freezes
   it; older lines demote to `.history` (max 3 per panel).
 - **Single audio-session owner**: only `AudioSessionController` touches `AVAudioSession`.
+- **VAD segment rotation with rollover**: `AudioTapBridge` does RMS silence
+  detection and `endAudio()`s to segment utterances; audio captured during the
+  request-rotation gap is held in a bounded `PCMRollover` and replayed into the
+  next request so the next utterance's start isn't dropped (bug #3 fix).
 - **Demo fallback**: `LiveSessionModel` with no injected engines runs a scripted
   partial→final sequence — zero network, for course demos.
 

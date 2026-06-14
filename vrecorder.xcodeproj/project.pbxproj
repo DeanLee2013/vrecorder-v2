@@ -23,6 +23,7 @@
 		6B18EFFE961F4B6A712EDAC1 /* OpenAITranslationEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E236F462813C7002CD3476D6 /* OpenAITranslationEngineTests.swift */; };
 		73017F8308853DACFAD0AFAB /* AudioTapBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32D105272930B0F28E68A7A8 /* AudioTapBridge.swift */; };
 		8396E5CEE00C5AF05609F15E /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7C85BC02C7E59A61FF20E58 /* RootView.swift */; };
+		83E26A6F056037FA2AE0E506 /* PCMRollover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C26EA08B99CC132A2D95C87 /* PCMRollover.swift */; };
 		8931A9E202F5ABF83225595D /* KeychainAPIKeyStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB9E1B6BC81BE95091BFCC7 /* KeychainAPIKeyStoreTests.swift */; };
 		993DB1495E915AA8AB0F1ED5 /* LiveScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EAD68889FA5FB914C737A1C /* LiveScreen.swift */; };
 		9A62D41249B504EA13BE46BA /* Palette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35379CA89CC5E2082B1151CC /* Palette.swift */; };
@@ -36,6 +37,7 @@
 		DA62129039B81ACFD0277090 /* APIKeyEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE35FEF6E6ED3386C348DAC8 /* APIKeyEntryView.swift */; };
 		E01605210287AABC7035C0E6 /* APIKeyBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56738A58924D6D1A8F9258C9 /* APIKeyBootstrap.swift */; };
 		E215807CC1FABAECB0ED8DD9 /* AudioSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9698B3CBC73ED00016C1FDB9 /* AudioSessionController.swift */; };
+		EA355EDBD2BB4026B6F108F3 /* PCMRolloverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C21D37EF9B0249F6B95250 /* PCMRolloverTests.swift */; };
 		F396E2FDD6B4A398C251F8BD /* PipelineFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 359E6691AB17E0E457612AEC /* PipelineFlowTests.swift */; };
 		F975F31CCF8DF496558EE28C /* VRecorderApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E50D83948BB6C00E64B1BEE5 /* VRecorderApp.swift */; };
 /* End PBXBuildFile section */
@@ -63,6 +65,7 @@
 		359E6691AB17E0E457612AEC /* PipelineFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineFlowTests.swift; sourceTree = "<group>"; };
 		43DCE3891E67B759EE664E94 /* LiveSessionModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSessionModel.swift; sourceTree = "<group>"; };
 		492B2AC9759DD274F56F3863 /* APIKeyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeyStore.swift; sourceTree = "<group>"; };
+		4C26EA08B99CC132A2D95C87 /* PCMRollover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCMRollover.swift; sourceTree = "<group>"; };
 		4E7CF138DC442B4208C38FE1 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		56738A58924D6D1A8F9258C9 /* APIKeyBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeyBootstrap.swift; sourceTree = "<group>"; };
 		5CB9E1B6BC81BE95091BFCC7 /* KeychainAPIKeyStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainAPIKeyStoreTests.swift; sourceTree = "<group>"; };
@@ -77,6 +80,7 @@
 		C923BA1FFC84279540C7315A /* AppleSpeechRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSpeechRecognizer.swift; sourceTree = "<group>"; };
 		CBED95A58A44DF7B749A1C3A /* SettingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsScreen.swift; sourceTree = "<group>"; };
 		CE35FEF6E6ED3386C348DAC8 /* APIKeyEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeyEntryView.swift; sourceTree = "<group>"; };
+		D3C21D37EF9B0249F6B95250 /* PCMRolloverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCMRolloverTests.swift; sourceTree = "<group>"; };
 		E236F462813C7002CD3476D6 /* OpenAITranslationEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAITranslationEngineTests.swift; sourceTree = "<group>"; };
 		E50D83948BB6C00E64B1BEE5 /* VRecorderApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VRecorderApp.swift; sourceTree = "<group>"; };
 		F2B4D17D7B8994F0EA964849 /* LiveSessionModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSessionModelTests.swift; sourceTree = "<group>"; };
@@ -138,6 +142,7 @@
 			children = (
 				9698B3CBC73ED00016C1FDB9 /* AudioSessionController.swift */,
 				32D105272930B0F28E68A7A8 /* AudioTapBridge.swift */,
+				4C26EA08B99CC132A2D95C87 /* PCMRollover.swift */,
 			);
 			path = Audio;
 			sourceTree = "<group>";
@@ -217,6 +222,7 @@
 				5CB9E1B6BC81BE95091BFCC7 /* KeychainAPIKeyStoreTests.swift */,
 				F2B4D17D7B8994F0EA964849 /* LiveSessionModelTests.swift */,
 				E236F462813C7002CD3476D6 /* OpenAITranslationEngineTests.swift */,
+				D3C21D37EF9B0249F6B95250 /* PCMRolloverTests.swift */,
 				359E6691AB17E0E457612AEC /* PipelineFlowTests.swift */,
 			);
 			path = vrecorderTests;
@@ -340,6 +346,7 @@
 				28ADC2D9BDE83B71D92E8621 /* Log.swift in Sources */,
 				C1D1527BEBB36F6CD62688DC /* MicButton.swift in Sources */,
 				5650104E755B1DBE1F6F3728 /* OpenAITranslationEngine.swift in Sources */,
+				83E26A6F056037FA2AE0E506 /* PCMRollover.swift in Sources */,
 				9A62D41249B504EA13BE46BA /* Palette.swift in Sources */,
 				8396E5CEE00C5AF05609F15E /* RootView.swift in Sources */,
 				CBF48BFA99DDE91FD7ABFE44 /* SettingsScreen.swift in Sources */,
@@ -360,6 +367,7 @@
 				8931A9E202F5ABF83225595D /* KeychainAPIKeyStoreTests.swift in Sources */,
 				0D7A87122D4A3A5F9DEB8AAC /* LiveSessionModelTests.swift in Sources */,
 				6B18EFFE961F4B6A712EDAC1 /* OpenAITranslationEngineTests.swift in Sources */,
+				EA355EDBD2BB4026B6F108F3 /* PCMRolloverTests.swift in Sources */,
 				F396E2FDD6B4A398C251F8BD /* PipelineFlowTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

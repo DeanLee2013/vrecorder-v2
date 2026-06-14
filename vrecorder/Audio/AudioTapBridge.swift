@@ -24,11 +24,22 @@ final class AudioTapBridge: @unchecked Sendable {
     /// sample rate — a fixed callback count would be ~0.2s at 48 kHz (audit-4 #4).
     private let silenceSecondsToClose: Double = 0.7
 
-    /// Install/replace the active request (main actor). Resets VAD state so the
-    /// new segment starts fresh.
+    /// Audio captured during the gap between endAudio() and the next request is
+    /// retained here and replayed into that request, so the next utterance's
+    /// start is not dropped (bug #3 / docs bug #1). ~0.5s at a 1024-frame /
+    /// 48 kHz tap cadence.
+    private let rollover = PCMRollover(cap: 24)
+
+    /// Install/replace the active request (main actor). Replays any audio captured
+    /// during the rotation gap, then resets VAD state for the new segment.
     func setRequest(_ newRequest: SFSpeechAudioBufferRecognitionRequest?) {
         lock.lock()
         request = newRequest
+        if let newRequest {
+            for buffered in rollover.drain() { newRequest.append(buffered) }
+        } else {
+            _ = rollover.drain()   // dropping the request also clears the ring
+        }
         hadSpeech = false
         silentSeconds = 0
         lock.unlock()
@@ -41,7 +52,13 @@ final class AudioTapBridge: @unchecked Sendable {
             ? Double(buffer.frameLength) / buffer.format.sampleRate : 0
 
         lock.lock()
-        guard let active = request else { lock.unlock(); return }
+        guard let active = request else {
+            // In the rotation gap: keep the audio so the next request can replay
+            // it instead of truncating the next utterance (bug #3).
+            rollover.add(buffer)
+            lock.unlock()
+            return
+        }
         active.append(buffer)
 
         var closing = false

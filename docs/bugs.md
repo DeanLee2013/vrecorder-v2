@@ -48,8 +48,8 @@ Track bugs here. Tell the agent "fix bug #N" to start a fix.
 
 | # | Summary | File/Area | Severity | Status | Notes |
 |---|---------|-----------|----------|--------|-------|
-| 1 | VAD rotation truncates the start of the next utterance | `AudioTapBridge` / `AppleSpeechRecognizer` | High | TODO | Surfaced by feature-#2 Gate-4 audit (prepush-64afb36); pre-existing feature-#1 pipeline residual on main. Bridge nulls the request at `endAudio()` but the new request installs only after the async final callback — audio in that gap is dropped. Fix: segment-ID parallel rotation or a bounded PCM rollover buffer. Demo uses the simulator/scripted path, so demo unaffected. Mirror: no. |
-| 2 | Unbounded partial-result stream + per-callback Task accumulation | `AppleSpeechRecognizer` | Medium | TODO | Same audit; long live sessions can accumulate partials/tasks. Fix: bounded event pump that coalesces partials, preserves finals. Mirror: no. |
+| 1 | VAD rotation truncates the start of the next utterance | `AudioTapBridge` / `AppleSpeechRecognizer` | High | FIXED | Surfaced by feature-#2 Gate-4 audit (prepush-64afb36); pre-existing feature-#1 pipeline residual on main. Bridge nulls the request at `endAudio()` but the new request installs only after the async final callback — audio in that gap is dropped. Fix: segment-ID parallel rotation or a bounded PCM rollover buffer. Demo uses the simulator/scripted path, so demo unaffected. GH: #3. Fixed by bounded PCMRollover replayed into the next request; PCMRolloverTests cover the ring. Device verify (real-mic) deferred — close-gate. |
+| 2 | Unbounded partial-result stream + per-callback Task accumulation | `AppleSpeechRecognizer` | Medium | TODO | Same audit; long live sessions can accumulate partials/tasks. Fix: bounded event pump that coalesces partials, preserves finals. GH: #4. |
 
 > Interruption auto-resume (related Gate-4 Medium) is tracked as **feature #3**, not a bug.
 
