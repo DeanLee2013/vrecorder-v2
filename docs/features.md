@@ -56,6 +56,7 @@ Before setting a feature to `PLANNED`, fill in these fields in a sub-section und
 | 3   | 打断后自动暂停/恢复（来电/Siri/AirPods 后续传） | audio/pipeline | Low | TODO | From audit-3 #5 (Medium, non-blocking): 当前打断即 stop()，需重新点麦克风。理想是 paused 态保留观察、interruption-ended `shouldResume` 时自动恢复。演示影响小。Mirror: no. |
 | 4   | 专用 VAD/分段阶段（无间隙轮转，连续传译鲁棒分句） | audio/pipeline | Medium | TODO | From bug-#1 audits: PCMRollover mitigates the common rotation gap but a long gap during sustained speech can still truncate. Robust fix = a dedicated VAD/segmentation stage that rotates recognition with no gap; ALSO owns the demand-aware bounded streaming pump (bug #2 residual: output stream + finals array not yet backpressured). Needs Gate-1 plan. Mirror: no. |
 | 5   | 仅转写模式（不翻译，只上屏转写） | settings/pipeline | Low | TODO | Settings toggle exists (designed) but is a no-op; wire into LiveSessionModel to bypass translation. Disable the toggle until implemented. GH: #10. Mirror: no. |
+| 6   | 验证 harness（XCUITest + DebugBridge + sim-gesture 驱动） | tooling/test | High | TODO | cron verify.md 假设的 harness（XCUITest target / vrecorder-debug:// DebugBridge / scripts/sim-tap.sh / sim-gesture-driver 文档）都不存在，导致 verify cron 全 blocked。建之以解锁 UI/可脚本化验证；音频真机验证仍需人工。GH issue filed. Mirror: no. |
 
 ### Feature #1 — Notes (retro)
 
