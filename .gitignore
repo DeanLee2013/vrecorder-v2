@@ -1,0 +1,26 @@
+# Xcode / build
+build/
+DerivedData/
+*.xcuserstate
+*.xcscmblueprint
+xcuserdata/
+*.moved-aside
+
+# xcodegen output (regenerated from project.yml)
+*.xcodeproj/project.xcworkspace/
+*.xcodeproj/xcuserdata/
+
+# Secrets — keys live outside the repo / in Keychain, never committed
+config/*key*
+*.p12
+*.mobileprovision
+
+# Codex audit artifacts (regenerated; keep the dir, ignore contents)
+.claude/codex-audits/*
+!.claude/codex-audits/.gitkeep
+
+# OS / tooling
+.DS_Store
+node_modules/
+/tmp/
+*.log

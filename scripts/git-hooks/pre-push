@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+# recorder-v2 — pre-push Codex audit gate (THE reason this project was restarted).
+#
+# Fires on `git push`. Audits the Swift files about to leave this machine with an
+# INDEPENDENT model (Codex, via scripts/run-codex.sh) BEFORE they reach the remote.
+# Codex uses ChatGPT-subscription auth (no OpenAI API key). Blocks the push if the
+# audit finds Critical/High findings; writes every audit to .claude/codex-audits/.
+#
+# Why pre-push (not pre-commit): a Codex audit takes minutes. Running it on EVERY
+# commit would make local work unbearable. pre-push audits the whole batch once,
+# right before it becomes shared/public — the moment that actually matters.
+#
+# Bypass (use sparingly, and say why): `git push --no-verify`  or  `SKIP_AUDIT=1 git push`
+#
+# git passes: $1=remote name, $2=remote URL ; stdin lines: <localref> <localsha> <remoteref> <remotesha>
+set -uo pipefail
+
+if [ "${SKIP_AUDIT:-0}" = "1" ]; then
+  echo "pre-push: SKIP_AUDIT=1 set — skipping Codex audit gate." >&2
+  exit 0
+fi
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+RUN_CODEX="$REPO_ROOT/scripts/run-codex.sh"
+AUDIT_DIR="$REPO_ROOT/.claude/codex-audits"
+DIMS="$REPO_ROOT/dev-docs/audit/DIMENSIONS-ios.md"
+ZERO="0000000000000000000000000000000000000000"
+
+[ -x "$RUN_CODEX" ] || { echo "pre-push: scripts/run-codex.sh missing/not executable — cannot audit. Fix it or bypass with --no-verify." >&2; exit 1; }
+mkdir -p "$AUDIT_DIR"
+
+# Collect the Swift files changed across all ref updates being pushed.
+changed=""
+while read -r localref localsha remoteref remotesha; do
+  [ "$localsha" = "$ZERO" ] && continue          # branch deletion — nothing to audit
+  if [ "$remotesha" = "$ZERO" ]; then
+    range="$localsha"                            # new branch: everything reachable that's new
+    files=$(git diff --name-only "$(git rev-list --max-parents=0 "$localsha" | tail -1)" "$localsha" -- '*.swift' 2>/dev/null)
+  else
+    range="$remotesha..$localsha"
+    files=$(git diff --name-only "$remotesha" "$localsha" -- '*.swift' 2>/dev/null)
+  fi
+  changed="$changed
+$files"
+done
+
+changed=$(echo "$changed" | grep -E '\.swift$' | sort -u | grep -v '^$' || true)
+
+if [ -z "$changed" ]; then
+  echo "pre-push: no Swift changes in this push — audit gate passes (nothing to review)." >&2
+  exit 0
+fi
+
+count=$(echo "$changed" | wc -l | tr -d ' ')
+echo "pre-push: Codex auditing $count changed Swift file(s) before push…" >&2
+echo "$changed" | sed 's/^/  - /' >&2
+
+ts=$(git rev-parse --short HEAD)
+OUT="$AUDIT_DIR/prepush-$ts.md"
+DIM_TEXT=""; [ -f "$DIMS" ] && DIM_TEXT="$(cat "$DIMS")"
+
+PROMPT="You are an INDEPENDENT read-only auditor for recorder-v2, a Swift 6 / SwiftUI /
+SwiftData / AVAudioEngine iOS simultaneous-interpretation app. Audit ONLY these
+changed files for real defects. Be concrete: cite file:line, give severity
+(Critical/High/Medium/Low), and a fix. Do not restate what is correct.
+
+Changed files:
+$changed
+
+Audit dimensions (pick the ones relevant to the diff):
+$DIM_TEXT
+
+End your report with a line exactly: 'VERDICT: BLOCK' if any Critical or High
+finding exists, otherwise 'VERDICT: PASS'."
+
+CODEX_TIMEOUT_SECS="${CODEX_TIMEOUT_SECS:-600}" "$RUN_CODEX" -e high -o "$OUT" "$PROMPT"
+rc=$?
+
+echo "pre-push: audit written to ${OUT#$REPO_ROOT/}" >&2
+
+if [ $rc -ne 0 ]; then
+  echo "pre-push: run-codex.sh did not finish cleanly (rc=$rc). Not blocking on tool error — review $OUT. Bypass: --no-verify." >&2
+  exit 0   # tool failure (timeout/auth) must not hard-block a push; the human reviews the artifact
+fi
+
+if grep -q 'VERDICT: BLOCK' "$OUT" 2>/dev/null; then
+  echo "" >&2
+  echo "❌ pre-push BLOCKED: Codex found Critical/High issues. See ${OUT#$REPO_ROOT/}" >&2
+  echo "   Fix them, or bypass intentionally with: git push --no-verify" >&2
+  exit 1
+fi
+
+echo "✅ pre-push: Codex audit PASS — push allowed." >&2
+exit 0

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>vrecorder-v2 冷启动手册（小白版）— 从初始化到让 Claude 自己干活</title>
+<style>
+:root{
+  --bg:#fbfaf7;--ink:#23201c;--muted:#7a736a;--line:#ece7df;--card:#fff;
+  --accent:#c2410c;--accent-bg:#fff4ed;--accent-bd:#fdd9c2;
+  --green:#15803d;--green-bg:#e9f7ec;--blue:#1d4ed8;--blue-bg:#eef3fe;
+  --warn:#b45309;--warn-bg:#fef6e1;--code:#1f2937;--code-ink:#e8ecf2;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.85 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 22px 100px}
+.hero{padding:50px 0 6px}
+.hero h1{font-size:27px;line-height:1.35;margin:0 0 12px}
+.hero .p{margin:0;color:var(--muted);font-size:15.5px}
+.hero .who{margin-top:14px;font-size:14px;background:var(--accent-bg);border:1px solid var(--accent-bd);border-radius:12px;padding:11px 16px;color:#9a3412}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px;background:#f0ece5;border-radius:5px;padding:1px 6px;color:#9a3412}
+h2.step{font-size:21px;margin:48px 0 4px;display:flex;align-items:center;gap:12px}
+h2.step .num{flex:none;width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;font-size:17px;font-weight:800;display:inline-flex;align-items:center;justify-content:center}
+.sub{color:var(--muted);font-size:15px;margin:4px 0 14px 46px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 24px;margin:16px 0;box-shadow:0 1px 2px rgba(0,0,0,.02)}
+.analogy{background:var(--blue-bg);border:1px solid #cfe0fd;border-radius:14px;padding:14px 18px;margin:14px 0;font-size:15px}
+.analogy b{color:var(--blue)}
+.metaphor{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.metaphor>div{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:14.5px}
+.metaphor .t{font-weight:800;font-size:15px;margin-bottom:4px;color:var(--accent)}
+.prompt{background:#0f2a1d;color:#d8f3e3;border:1px solid #2a6b48;border-radius:14px;padding:16px 18px;margin:12px 0;font-size:15px;line-height:1.7}
+.prompt .lbl{display:inline-block;font-size:11.5px;font-weight:800;background:#2a6b48;color:#d8f3e3;border-radius:6px;padding:2px 9px;margin-bottom:8px}
+.prompt .say{color:#fff}
+.terminal{background:var(--code);color:var(--code-ink);border-radius:12px;padding:14px 16px;overflow-x:auto;font:13px/1.7 ui-monospace,Menlo,monospace;margin:10px 0}
+.terminal .c{color:#8aa0b6}
+.tip{background:var(--green-bg);border:1px solid #bfe6c8;border-radius:12px;padding:12px 16px;margin:12px 0;font-size:14.5px}
+.tip b{color:var(--green)}
+.warn{background:var(--warn-bg);border:1px solid #f6dca0;border-radius:12px;padding:12px 16px;margin:12px 0;font-size:14.5px}
+.warn b{color:var(--warn)}
+.big{font-size:17px;font-weight:700;margin:18px 0 6px}
+ul{padding-left:22px}li{margin:6px 0}
+.toc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 20px;margin:22px 0;font-size:15px}
+.toc a{color:var(--ink);text-decoration:none;display:block;padding:3px 0}
+.toc a:hover{color:var(--accent)}
+footer{margin-top:70px;padding-top:18px;border-top:2px solid var(--line);color:var(--muted);font-size:13px}
+@media(max-width:640px){.metaphor{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hero">
+  <h1>vrecorder-v2 冷启动手册（小白版）<br>从初始化到让 Claude 自己干活</h1>
+  <p class="p">不需要你懂编程。这份手册用大白话，一步步带你把一个新项目"点火"，最后让 AI 助理在你睡觉时也能自己写代码、自己检查、自己修 bug。每一步都给你<b>照着抄就行的提示词</b>。</p>
+  <div class="who">👤 <b>这份手册写给谁</b>：完全没有计算机背景、但想用 Claude Code 这类 AI 工具把一个项目"自动跑起来"的人。看到不懂的词别慌，每个词第一次出现都会用生活里的东西打比方。</div>
+</div>
+
+<div class="toc">
+  <b>你会依次做这几件事 👇</b>
+  <a href="#idea">0｜先搞懂一件事：你到底在搭什么？</a>
+  <a href="#prep">1｜一次性准备：装好三样工具</a>
+  <a href="#ground">2｜地基已经帮你打好了（认识这些文件夹）</a>
+  <a href="#meet">3｜让 AI 助理认识这个项目（第一句话）</a>
+  <a href="#audit">4｜体验"交作业就自动有人批改"（提交即审计）</a>
+  <a href="#todo">5｜给助理一张"任务清单"</a>
+  <a href="#auto">6｜按下"无人值守"开关（让它自己连轴转）</a>
+  <a href="#morning">7｜第二天早上，你看什么</a>
+  <a href="#stop">8｜怎么喊停 & 常见担心</a>
+</div>
+
+<!-- 0 -->
+<h2 class="step" id="idea"><span class="num">0</span>你到底在搭什么？</h2>
+<p class="sub">一句话：你在雇一个"会自己干活、还会自己检查作业"的 AI 程序员助理。</p>
+<div class="analogy">🧑‍🍳 <b>打个比方</b>：想象你开了一家餐厅，但厨师是个 AI。你不用站在厨房盯着。你只要做三件事：① 把<b>菜谱和账本</b>放在厨房（让它知道做什么、做到哪了）；② 装一个<b>质检员</b>，每道菜出锅前自动尝一口（不合格就退回）；③ 设一个<b>闹钟</b>，定时叫它起来按订单做菜。这三样齐了，你回家睡觉，餐厅自己运转。</div>
+<div class="metaphor">
+  <div><div class="t">📒 账本（记忆）</div>项目里的文字文件，记着"要做什么、做到哪、为什么这么做"。AI 每次来上班先读它，就知道接着干。</div>
+  <div><div class="t">🛂 质检员（审计）</div>每次 AI 想把新代码"交上去"，自动请<b>另一个 AI</b>独立检查一遍，有严重问题就拦下来。</div>
+  <div><div class="t">⏰ 闹钟（定时唤醒）</div>到点自动把 AI"叫醒"开一局新班，照着账本挑一件活干完，再睡下。</div>
+  <div><div class="t">📝 任务清单（台账）</div>你用大白话写下"我想要这个功能""这里有个毛病"，AI 从清单里挑活做。</div>
+</div>
+<p>好消息：<b>账本、质检员、闹钟的框架，已经在 <code>vrecorder-v2</code> 这个文件夹里帮你搭好了。</b>你主要要做的，是"准备工具 → 让助理认识项目 → 写任务清单 → 按下自动开关"。</p>
+
+<!-- 1 -->
+<h2 class="step" id="prep"><span class="num">1</span>一次性准备：装好三样工具</h2>
+<p class="sub">这一步一辈子只做一次。装完就不用再管。</p>
+<div class="card">
+<div class="big">① Claude Code —— 你的 AI 助理本体</div>
+<p>它是一个在"终端"里运行的 AI（终端 = 电脑里那个黑黑的、能打字命令的小窗口，Mac 上叫"终端 Terminal"）。按官网指引装好、用你的 Claude 账号登录即可。</p>
+<div class="big">② Codex —— 那位"质检员"</div>
+<p>这是另一家公司（OpenAI）的 AI，专门用来<b>独立审查</b>助理写的代码（两个不同的 AI 互相挑错，比一个人自检靠谱）。装好后用<b>订阅账号登录</b>就行，<b>不用填什么密钥/key</b>：</p>
+<div class="terminal"><span class="c"># 在终端里粘贴这两行：</span>
+npm install -g @openai/codex
+codex login        <span class="c"># 浏览器会弹出来，用你的 ChatGPT 账号登录</span></div>
+<div class="tip">✅ <b>为什么强调"不用 key"</b>：用订阅账号登录，按月付费，便宜很多，也不用保管一串容易泄露的密码。这正是这套项目特意配置好的方式。</div>
+<div class="big">③ Git / GitHub 账号 —— 给代码拍快照、存云端</div>
+<p>Git = 给你的项目<b>不断拍快照</b>的工具，随时能回到任何一张旧快照。GitHub = 把这些快照<b>存到云端</b>的网站（像代码的网盘 + 相册）。注册个 GitHub 账号，按提示登录即可。</p>
+</div>
+
+<!-- 2 -->
+<h2 class="step" id="ground"><span class="num">2</span>地基已经帮你打好了</h2>
+<p class="sub">打开 <code>vrecorder-v2</code> 文件夹，你会看到这些。不用改，认识一下就行：</p>
+<div class="card">
+<ul>
+<li><code>AGENTS.md</code> —— <b>给助理的"员工手册"</b>。AI 一上班先读它，知道这个项目的规矩。</li>
+<li><code>docs/</code> 里的 <code>features.md / bugs.md / tasks.md</code> —— <b>你的三本台账</b>：想要的新功能、发现的毛病、随手记的杂事。<b>这是你主要要动笔的地方。</b></li>
+<li><code>.claude/</code> —— <b>规矩和自动机关</b>都在这（质检规则、定时任务的说明书）。</li>
+<li><code>scripts/git-hooks/pre-push</code> —— <b>那位"质检员"的触发开关</b>。它已经装好：你每次想把代码上传云端时，会自动先审一遍。</li>
+<li><code>dev-docs/</code> —— <b>项目的长期记忆</b>：计划、决策、验证记录都放这。</li>
+</ul>
+</div>
+<div class="warn">⚙️ <b>只需做一次的小动作</b>：第一次打开项目，在终端里进入这个文件夹，运行一行命令把"质检员开关"接上（如果还没接）：
+<div class="terminal">bash scripts/git-hooks/install.sh</div>
+看到 "The Codex audit gate now runs on every 'git push'" 就成功了。</div>
+
+<!-- 3 -->
+<h2 class="step" id="meet"><span class="num">3</span>让 AI 助理认识这个项目</h2>
+<p class="sub">在 <code>vrecorder-v2</code> 文件夹里启动 Claude Code，然后把下面这段话发给它（这就是"提示词"——你对助理说的话）。</p>
+<div class="prompt"><span class="lbl">提示词 · 第一次见面</span>
+<span class="say">你好。请先读这个项目的 <code>AGENTS.md</code> 和 <code>docs/architecture.md</code>，告诉我：① 这是个什么项目？② 你需要遵守哪些规矩（尤其"提交即审计"是怎么回事）？③ 现在项目处于什么阶段、下一步该做什么？用大白话回答，不要用太多术语。</span></div>
+<div class="tip">✅ 它读完会用人话给你讲清楚这个项目、规矩和现状。<b>这一步是确认"助理真的看懂了说明书"</b>——以后每开一局新班，它都会自己读，不会失忆。</div>
+
+<!-- 4 -->
+<h2 class="step" id="audit"><span class="num">4</span>体验"交作业就自动有人批改"</h2>
+<p class="sub">这是这个项目最特别的地方，也是你重启它的原因——先亲眼看一次它怎么工作。</p>
+<div class="card">
+<p>让助理做一件很小的事，然后把成果"上传云端"。上传的那一刻，质检员会自动跳出来审查：</p>
+<div class="prompt"><span class="lbl">提示词 · 先走一遍流程</span>
+<span class="say">请做一个最小的改动（比如在 README 里加一句话），然后带我走一遍"提交并上传"的完整流程。当你执行 <code>git push</code> 时，会自动触发 Codex 质检——把质检的结论用大白话讲给我听。如果质检拦住了，告诉我它担心什么、该怎么办。</span></div>
+<p style="margin-top:12px">你会看到：上传前，终端里冒出一行行"正在审查…"，几分钟后给出结论。如果代码有严重问题，<b>上传会被拦下来</b>，并把审查报告存进 <code>.claude/codex-audits/</code>。</p>
+</div>
+<div class="analogy">🛂 <b>为什么这很重要</b>：传统做法是 AI 写完直接交，错了你事后才发现。这里是"<b>出门前自动安检</b>"——有严重问题根本出不了门。而且从项目第一天就生效，不是以后才补。</div>
+
+<!-- 5 -->
+<h2 class="step" id="todo"><span class="num">5</span>给助理一张"任务清单"</h2>
+<p class="sub">AI 不会凭空知道你想要什么。你得把需求写进台账。用大白话写就行，它会帮你整理成正式条目。</p>
+<div class="prompt"><span class="lbl">提示词 · 提需求（新功能）</span>
+<span class="say">我想加一个功能：<b>「（这里用你自己的话描述，比如：开始翻译时屏幕上方显示一个红色'录音中'的小圆点）」</b>。请把它按规矩整理成 <code>docs/features.md</code> 里的一条，填好"要解决什么问题、范围、要考虑的特殊情况、怎么测、怎么算做完"，并在 GitHub 上建一个对应的条目。</span></div>
+<div class="prompt"><span class="lbl">提示词 · 报毛病（bug）</span>
+<span class="say">我发现一个问题：<b>「（用你的话描述现象，比如：来电话之后，翻译就不出声了）」</b>。请把它登记到 <code>docs/bugs.md</code>，并建一个对应的 GitHub 条目。先别急着修，只登记。</span></div>
+<div class="tip">✅ 台账里有了"待办"的条目，第 6 步的自动模式才有活可干。<b>清单是空的，闹钟叫醒它也只会说"没活干"。</b></div>
+
+<!-- 6 -->
+<h2 class="step" id="auto"><span class="num">6</span>按下"无人值守"开关</h2>
+<p class="sub">前面都顺了，就可以让它自己连轴转了。两个前提：① 台账里有活（第 5 步）；② 允许它自己干，不用每步都问你同意。</p>
+<div class="card">
+<div class="big">先：先手动陪它完整做完一件事</div>
+<p>在放手之前，<b>你先盯着它把第一个功能从头做到尾一次</b>，确认整条流水线（写代码→质检→测试→上传）真的通。这一步是"试运行"。</p>
+<div class="prompt"><span class="lbl">提示词 · 手动跑通第一件事</span>
+<span class="say">请用 <code>/feature-workflow</code> 实现 <code>docs/features.md</code> 里的第 1 个功能。严格按六个步骤来、不要跳步：先写测试、再写代码、然后让 Codex 质检、再验证、最后才上传。每完成一步用一句话告诉我进度。</span></div>
+<div class="big" style="margin-top:18px">再：打开自动开关</div>
+<p>确认能跑通后，让它进入"无人值守"——像给餐厅装上定时器：</p>
+<div class="prompt"><span class="lbl">提示词 · 启动无人值守</span>
+<span class="say">请帮我启动无人值守工作流：按 <code>.claude/cron-prompts/</code> 里的说明，定时自动做四件事——验证（verify）、修 bug（bugfix）、做功能（feature）、看门狗（watchdog）。每次自动运行都要在日志里如实记录"开始/结束/结果"，没活干就如实写"没活干"，不要硬编活儿。运行期间常规操作请自动放行、不要每步都停下来等我点同意。</span></div>
+</div>
+<div class="warn">⏰ <b>关于"闹钟"</b>：定时任务是<b>跟着当前这次运行</b>的，关机或过 7 天会自动停。第二天想继续，重新发一次上面的"启动无人值守"提示词即可。看门狗会帮你续期、清理卡住的任务。</div>
+
+<!-- 7 -->
+<h2 class="step" id="morning"><span class="num">7</span>第二天早上，你看什么</h2>
+<p class="sub">想知道它夜里干了啥，不用懂代码，看三样就够。直接问助理：</p>
+<div class="prompt"><span class="lbl">提示词 · 早间复盘</span>
+<span class="say">用大白话给我一份"昨夜工作汇报"：① 看 <code>.claude/cron-logs/</code> 的日志，每个定时任务都正常"开始→结束"了吗？做成了什么、有没有报错？② 有没有新上传的成果，每个都通过质检和验证了吗？③ 有没有卡住的任务需要我处理？挑重点讲，别堆术语。</span></div>
+<div class="tip">✅ 把这当成每天早上花两分钟听一次"值班汇报"。一切正常就继续；有异常它会指给你看，你再决定。</div>
+
+<!-- 8 -->
+<h2 class="step" id="stop"><span class="num">8</span>怎么喊停 & 常见担心</h2>
+<div class="card">
+<p class="big">🛑 想让它停下来？</p>
+<div class="prompt"><span class="lbl">提示词 · 停</span><span class="say">请停止所有无人值守的定时任务，并做好交接：告诉我现在到哪一步了、有什么没做完。</span></div>
+<p class="big" style="margin-top:16px">😟 常见担心</p>
+<ul>
+<li><b>"它会不会乱改、把项目搞坏？"</b> —— 每次上传前有独立质检拦截严重问题；而且每一步都拍了快照（git），随时能退回。</li>
+<li><b>"它会不会乱花钱？"</b> —— 质检用的是<b>订阅账号</b>（按月固定费用），不是按次烧钱的密钥。</li>
+<li><b>"它会不会自己瞎编需求？"</b> —— 不会。它只从你写进台账的清单里挑活；清单没有的，它不会自作主张做。</li>
+<li><b>"我电脑关了它还跑吗？"</b> —— 不跑。定时任务靠你这台电脑上的这次运行；关机就停，开机重新发"启动"提示词即可。</li>
+<li><b>"它会不会自己设计界面，结果很丑？"</b> —— 规矩里写死了：界面必须来自你提供的设计稿，它不许自创；没设计稿它会停下来等你给。</li>
+</ul>
+</div>
+
+<div class="analogy" style="margin-top:26px">🎯 <b>整页总结成一句话</b>：装好工具(第1步)→ 地基已就绪(第2步)→ 让助理读懂项目(第3步)→ 亲眼看一次自动质检(第4步)→ 把需求写成清单(第5步)→ 手动陪跑一遍再按下自动开关(第6步)→ 每天早上听一次汇报(第7步)。顺序别反：<b>先把"做什么"和"怎么把关"准备好，最后才让闹钟开始自动叫醒它。</b></div>
+
+<footer>
+  <p>vrecorder-v2 冷启动手册 · 小白版。配套：<code>AGENTS.md</code>（员工手册）、<code>README.md</code>（项目说明）、<code>.claude/cron-prompts/</code>（四个定时任务的说明书）、<code>dev-docs/audit/DIMENSIONS-ios.md</code>（质检员的检查清单）。本项目从 vrecorder 重启，保留其已验证的 iOS 工作流并新增"提交即审计"闸门。</p>
+</footer>
+
+</div>
+</body>
+</html>
