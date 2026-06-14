@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>vrecorder-v2 无人值守开发 · 启动教程（从冷启动到提交即审计的自驱闭环）</title>
+<style>
+:root{
+  --bg:#f5f6f8;--ink:#1f2430;--muted:#6b7280;--line:#e2e6ec;--card:#fff;
+  --accent:#2563eb;--accent-bg:#eff6ff;
+  --on:#15803d;--on-bg:#dcfce7;--on-bd:#86efac;
+  --warn:#b45309;--warn-bg:#fef3c7;--warn-bd:#fcd34d;
+  --off:#b91c1c;--off-bg:#fee2e2;--off-bd:#fca5a5;
+  --human:#7c3aed;--human-bg:#f5f3ff;--human-bd:#ddd6fe;
+  --code:#0e1726;--code-ink:#dce6f5;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15.5px/1.78 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:0 20px 90px}
+.hero{padding:48px 0 8px}
+.hero h1{font-size:27px;line-height:1.34;margin:0 0 10px}
+.hero p{margin:0;color:var(--muted);font-size:14.5px}
+.hero .meta{margin-top:10px;font-size:12.5px;color:var(--muted)}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;background:rgba(37,99,235,.08);
+  border-radius:4px;padding:1px 5px;color:#1e40af}
+h2.sec{font-size:20px;margin:46px 0 6px;padding-left:13px;border-left:5px solid var(--accent);line-height:1.4}
+h2.sec .n{color:var(--accent);font-family:ui-monospace,Menlo,monospace;margin-right:8px}
+.lede{color:var(--muted);font-size:14px;margin:2px 0 16px 18px}
+nav.toc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 22px;margin:24px 0}
+nav.toc b{font-size:13px;color:var(--muted);letter-spacing:.04em}
+nav.toc ol{margin:8px 0 0;padding-left:22px}
+nav.toc li{margin:4px 0}
+nav.toc a{color:var(--ink);text-decoration:none}
+nav.toc a:hover{color:var(--accent)}
+.verdict{background:linear-gradient(180deg,#fff,#fafbfc);border:1px solid var(--line);border-left:6px solid var(--on);
+  border-radius:14px;padding:18px 22px;margin:18px 0}
+.verdict.amber{border-left-color:var(--warn)}
+.verdict h3{margin:0 0 8px;font-size:17px;color:var(--on)}
+.verdict.amber h3{color:var(--warn)}
+.verdict p{margin:0 0 6px;font-size:14px}
+.verdict b{color:var(--ink)}
+.scores{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+.sc{flex:1;min-width:150px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.sc .lab{font-size:12px;color:var(--muted)}
+.sc .big{font-size:20px;font-weight:800;margin:3px 0}
+.sc.on .big{color:var(--on)} .sc.off .big{color:var(--off)} .sc.warn .big{color:var(--warn)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 22px;margin:16px 0}
+.stage{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:18px 0;overflow:hidden}
+.stage>.head{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--line);
+  background:#fbfcfe;flex-wrap:wrap}
+.stage>.head .badge{font-size:11px;font-weight:800;font-family:ui-monospace,Menlo,monospace;
+  background:var(--accent-bg);color:var(--accent);border-radius:20px;padding:3px 11px}
+.stage>.head h3{margin:0;font-size:17px}
+.stage>.head .who{margin-left:auto;font-size:11.5px;font-weight:700;border-radius:20px;padding:3px 11px}
+.who.h{background:var(--human-bg);color:var(--human)} .who.ai{background:var(--on-bg);color:var(--on)}
+.who.mix{background:var(--warn-bg);color:var(--warn)}
+.stage>.body{padding:6px 20px 16px}
+.step{margin:14px 0}
+.step .t{font-weight:700;font-size:14.5px;display:flex;align-items:baseline;gap:8px}
+.step .t .ix{flex:none;width:21px;height:21px;border-radius:50%;background:var(--accent);color:#fff;
+  font-size:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center}
+.step p{margin:5px 0 5px 29px;font-size:13.8px;color:#374151}
+.done-flag{margin:8px 0 4px 29px;font-size:12.5px;color:var(--on);background:var(--on-bg);border:1px solid var(--on-bd);
+  border-radius:8px;padding:6px 11px;display:inline-block}
+pre{background:var(--code);color:var(--code-ink);border-radius:10px;padding:13px 16px;overflow-x:auto;
+  font:12.5px/1.62 ui-monospace,Menlo,monospace;margin:8px 0 8px 29px}
+pre.full{margin-left:0}
+pre code{background:none;color:inherit;padding:0}
+pre .c{color:#7d8aa3}
+pre .k{color:#7dd3fc}
+.prompt{border-left:3px solid var(--human)}
+.prompt .lbl{display:block;color:#b794f6;font-size:11px;font-weight:800;margin-bottom:6px;font-family:ui-monospace,Menlo,monospace}
+.tip{background:var(--accent-bg);border:1px solid #bfdbfe;border-radius:10px;padding:10px 15px;margin:12px 0;font-size:13.5px}
+.warnbox{background:var(--warn-bg);border:1px solid var(--warn-bd);border-radius:10px;padding:10px 15px;margin:12px 0;font-size:13.5px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0;background:var(--card)}
+.tbl th,.tbl td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+.tbl th{background:#f1f5f9;font-weight:700}
+.tbl code{font-size:11.5px}
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:0;margin:16px 0}
+.flow .b{flex:1;min-width:128px;background:var(--card);border:1px solid var(--line);border-radius:11px;
+  padding:11px 13px;position:relative;font-size:12.8px}
+.flow .b b{display:block;font-size:13.5px;color:var(--accent);margin-bottom:3px}
+.flow .arr{display:flex;align-items:center;justify-content:center;color:#9aa1ab;font-size:18px;padding:0 6px}
+footer{margin-top:70px;padding-top:18px;border-top:2px solid var(--line);color:var(--muted);font-size:12.5px}
+@media(max-width:680px){.flow .arr{display:none}.stage>.head .who{margin-left:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hero">
+  <h1>vrecorder-v2 无人值守开发 · 启动教程</h1>
+  <p>这是 vrecorder 的<b>干净重启版</b>。治理骨架已全部就位，且多了一台 vrecorder 当初没有的引擎——<b>提交即审计闸门</b>（pre-push Codex 审计，从第 1 个 commit 起生效）。本教程给你正确的<b>提示词</b>与<b>启动顺序</b>：冷启动 → 设计 → 计划 → 六门开发 → 提交即审计 → 无人值守闭环。</p>
+  <p class="meta">面向已装好 Claude Code 的操作者，非小白入门版（那份见 <code>冷启动手册-小白版-从初始化到无人值守.html</code>）。本版对标 vrecorder 的《无人值守开发-启动教程》风格，内容按 vrecorder-v2 实测骨架重写。仓库：<code>github.com/DeanLee2013/vrecorder-v2</code>（private）。</p>
+</div>
+
+<nav class="toc">
+  <b>目录</b>
+  <ol>
+    <li><a href="#now">你现在站在哪里：骨架全在，且独有"提交即审计"</a></li>
+    <li><a href="#ignite">一次性点火序列（开工前做这 5 件事）</a></li>
+    <li><a href="#gate">核心差异引擎：提交即审计（pre-push）怎么工作</a></li>
+    <li><a href="#phases">五个阶段的提示词与启动顺序</a>
+      <ul style="margin:3px 0 0">
+        <li><a href="#A">阶段 A · 设计</a> · <a href="#B">B · 计划</a> · <a href="#C">C · 开发（6 门）</a> · <a href="#D">D · 修 bug</a> · <a href="#E">E · 无人值守</a></li>
+      </ul>
+    </li>
+    <li><a href="#daily">日常提示词速查表</a></li>
+    <li><a href="#human">人类裁量权三处 + 免确认</a></li>
+    <li><a href="#order">一页流程图：完整启动顺序</a></li>
+  </ol>
+</nav>
+
+<!-- 01 -->
+<h2 class="sec" id="now"><span class="n">01</span>你现在站在哪里</h2>
+<p class="lede">vrecorder-v2 不是从白纸开始的——它带着 vrecorder/vmark 已验证的整套纪律落地，外加一台新引擎。</p>
+<div class="verdict">
+  <h3>✅ 一句话定位：地基已浇好，且第 1 个 commit 就装了"出门安检"</h3>
+  <p>vrecorder 当初的痛点是"门禁很多、引擎从未点火"。vrecorder-v2 直接把那台<b>当初最该有却没有的引擎</b>装上了：<b>提交即审计</b>——每次 <code>git push</code> 前自动请独立的 Codex 审一遍改动的 Swift，严重问题<b>挡在本机门口</b>，根本推不出去。</p>
+  <p>· <b>骨架实测在位</b>：<code>.claude/rules/</code> 13 条、<code>hooks/</code> 6 个治理钩子、<code>cron-prompts/</code> 4 份、<code>scripts/{run-codex,run-tests}.sh</code>、<code>.claude/agents/</code> 9 个子代理（嫁接自 vmark，待 iOS 改造）。</p>
+  <p>· <b>审计引擎可用</b>：<code>codex</code> CLI 走 ChatGPT 订阅登录（<b>无 OpenAI key</b>）；<code>scripts/git-hooks/pre-push</code> 已 <code>install.sh</code> 装入 <code>.git/hooks/</code>。</p>
+  <p>· <b>记忆框架在位</b>：<code>dev-docs/{audit/DIMENSIONS-ios.md, verification/SCHEMA.md, decisions/, plans/, designs/}</code>。</p>
+</div>
+<div class="scores">
+  <div class="sc on"><div class="lab">提交即审计闸门</div><div class="big">✓ 已装</div><div class="lab">commit #1 即生效</div></div>
+  <div class="sc warn"><div class="lab">台账燃料</div><div class="big">空</div><div class="lab">待你写需求（阶段 B）</div></div>
+  <div class="sc warn"><div class="lab">cron 触发层</div><div class="big">0 / 4</div><div class="lab">待点火（阶段 E）</div></div>
+  <div class="sc off"><div class="lab">app 代码</div><div class="big">M0</div><div class="lab">尚无 Swift，从 0 写</div></div>
+</div>
+<div class="tip">📌 <b>与 vrecorder 的关键差别</b>：vrecorder 的审计靠 cron/Codex 在工作流中段跑（且当初从未点火）；vrecorder-v2 把审计前移到<b>每次推送的物理闸门</b>——这是"重启"的全部意义。先把这台引擎吃透（§03），再谈五阶段。</div>
+
+<!-- 02 -->
+<h2 class="sec" id="ignite"><span class="n">02</span>一次性点火序列</h2>
+<p class="lede">开工前做这 5 件事，之后不再重复。</p>
+<div class="card">
+<div class="step"><div class="t"><span class="ix">1</span>确认审计引擎登录态（订阅，非 key）</div>
+<pre class="full"><code>codex login status        <span class="c"># 期望: Logged in using ChatGPT</span>
+codex --version           <span class="c"># 任何 0.13x+ 均可</span></code></pre></div>
+<div class="step"><div class="t"><span class="ix">2</span>装好提交即审计钩子（若 clone 来的新机）</div>
+<pre class="full"><code>bash scripts/git-hooks/install.sh   <span class="c"># 装 .git/hooks/pre-push</span></code></pre></div>
+<div class="step"><div class="t"><span class="ix">3</span>在仓库根启动 Claude Code，让它读懂项目</div>
+<div class="prompt"><pre class="full"><code><span class="lbl">提示词 · 让助理认识 vrecorder-v2</span>读 AGENTS.md、docs/architecture.md、dev-docs/audit/DIMENSIONS-ios.md。用要点回答：
+(1) 这个项目的六门工作流是什么、每门的验收 bar；
+(2) "提交即审计"闸门的触发点、阻断条件、绕过方式；
+(3) 现在处于哪个里程碑、下一步该做什么。不要复述全文，给我可执行结论。</code></pre></div></div>
+<div class="step"><div class="t"><span class="ix">4</span>确认免确认授权（cron 会话不能停下来等你点同意）</div>
+<p>把常规工具调用预先放行，否则 cron 唤起的会话会卡在权限弹窗上。治理钩子是<code>exit 2</code>硬挡的只在该挡时挡；提交即审计闸门用 <code>--no-verify</code> 可显式绕过。</p></div>
+<div class="step"><div class="t"><span class="ix">5</span>准备远程仓库（已就绪）</div>
+<p>已建 <code>DeanLee2013/vrecorder-v2</code>（private），<code>main</code> 已有首个 commit。后续每次 <code>git push</code> 自动过闸门。</p></div>
+</div>
+
+<!-- 03 核心引擎 -->
+<h2 class="sec" id="gate"><span class="n">03</span>核心差异引擎：提交即审计</h2>
+<p class="lede">这是 vrecorder-v2 的灵魂，先单独讲透，再嵌进开发流。</p>
+<div class="card">
+<div class="flow">
+  <div class="b"><b>git push</b>改动的 Swift 即将离开本机</div>
+  <div class="arr">→</div>
+  <div class="b"><b>pre-push 钩子</b>取本次推送 diff 里的 <code>*.swift</code></div>
+  <div class="arr">→</div>
+  <div class="b"><b>run-codex.sh</b>订阅版 Codex 只读审计<br>对照 DIMENSIONS-ios（11 维）</div>
+  <div class="arr">→</div>
+  <div class="b"><b>判决</b>Critical/High → <span style="color:var(--off)">BLOCK 推送</span><br>否则 <span style="color:var(--on)">PASS</span></div>
+  <div class="arr">→</div>
+  <div class="b"><b>留痕</b>报告落 <code>.claude/codex-audits/</code></div>
+</div>
+<table class="tbl">
+<tr><th style="width:150px">设计选择</th><th>原因</th></tr>
+<tr><td>pre-push，<b>不是</b> pre-commit</td><td>Codex 审一次要几分钟；逐 commit 阻塞无法工作。pre-push 在"代码即将变公开"的那一刻审整批。</td></tr>
+<tr><td>订阅版 Codex（无 OpenAI key）</td><td><code>codex login</code> 订阅认证，按月计费、无密钥保管。vrecorder-v2 特意不用 API key。</td></tr>
+<tr><td>iOS 专属审计维度</td><td><code>DIMENSIONS-ios.md</code> 11 维（Swift 6 并发 / 音频会话生命周期 / 流式 partial-final / SwiftData / 权限错误分类 / 秘钥泄漏 / clean-clone 完整性…）。<b>没照搬 vmark 的 Tauri 维度</b>。</td></tr>
+<tr><td>工具故障不硬挡</td><td>超时/鉴权失败只写报告供人工复核；只有真正 <code>VERDICT: BLOCK</code> 才挡推送——避免审计引擎抖动卡死流水线。</td></tr>
+<tr><td>可显式绕过</td><td><code>git push --no-verify</code> 或 <code>SKIP_AUDIT=1 git push</code>，但要说明理由（rule「别绕过，要问」）。</td></tr>
+</table>
+</div>
+<div class="warnbox">⚠️ 它和 GitHub Actions 云端审计是<b>互补不是替代</b>：pre-push 在<b>本机、推送前</b>拦截（无需云端 secret、第 1 commit 即生效）；若日后要云端兜底（PR 触发、跨机覆盖），再加 Actions——但那需要配 token secret，按需再说。</div>
+
+<!-- 五阶段 -->
+<h2 class="sec" id="phases"><span class="n">04</span>五个阶段的提示词与启动顺序</h2>
+<p class="lede">顺序不可逆：先灌满"设计/计划"（磁盘），跑通第一件事证明闭环，最后才点火 cron。</p>
+
+<!-- A -->
+<div class="stage" id="A">
+  <div class="head"><span class="badge">阶段 A</span><h3>设计</h3><span class="who h">人类主导</span></div>
+  <div class="body">
+    <p style="font-size:13.8px;color:#374151">rule 51 铁律：UI 只能来自 committed 设计稿，AI 不自创。先把界面设计落进 <code>dev-docs/designs/</code>，否则带 UI 的 WI 会被卡在 <code>needs-design</code>。纯后端 WI 可跳过。</p>
+    <div class="prompt"><pre class="full"><code><span class="lbl">提示词 · 落设计</span>我把 claude.ai/design 的交接包放进了 dev-docs/designs/2026-06-14-v2-v1/，含每个界面的
+默认/加载/错误/空四态。开发时遇到没在设计包里的界面或状态，停下并建 needs-design issue，
+对应 WI 标 BLOCKED: needs-design (#N)，不要自创占位 UI。</code></pre></div>
+    <div class="done-flag">完成判据：<code>dev-docs/designs/&lt;bundle&gt;/</code> 已 commit，覆盖目标界面的四态。</div>
+  </div>
+</div>
+
+<!-- B -->
+<div class="stage" id="B">
+  <div class="head"><span class="badge">阶段 B</span><h3>计划（Gate 1 + Gate 2）</h3><span class="who mix">人定方向·AI 起草·独立审</span></div>
+  <div class="body">
+    <div class="step"><div class="t"><span class="ix">1</span>把需求写成台账行（PLANNED 五字段）</div>
+    <div class="prompt"><pre class="full"><code><span class="lbl">提示词 · 立项</span>我要做这个功能：「&lt;一句话需求&gt;」。按 docs/features.md 的 Plan Template 整理成一行，
+填 Problem/Scope/Edge cases/Test plan/Acceptance，建对应 GitHub issue 并回填 GH:#N。
+（改台账时 check_gh_issue_mirror 会强制镜像，没建 issue 会被挡。）</code></pre></div></div>
+    <div class="step"><div class="t"><span class="ix">2</span>写实现级计划（plans/，七段）</div>
+    <div class="prompt"><pre class="full"><code><span class="lbl">提示词 · Gate 1 计划</span>为 feature #N 写 dev-docs/plans/20260614-feature-N-&lt;slug&gt;.md，按 rule 47 七段：
+Problem / Surface area(逐文件真实签名 + Files OUT) / Prior art / WI 拆分 /
+Test catalogue / Risks / Backward compat。</code></pre></div></div>
+    <div class="step"><div class="t"><span class="ix">3</span>独立审计（Gate 2，作者≠审计者）</div>
+    <div class="prompt"><pre class="full"><code><span class="lbl">提示词 · Gate 2 审计</span>用 scripts/run-codex.sh -e high 审这份计划：模型假设是否成立(字段/类型/签名真存在)、
+缺哪些边界、协议签名是否泄漏实现、并发隐患、WI 拆分是否合理。零 Critical/High/Medium 才过，
+最多 3 轮，不收敛就升级给我。</code></pre></div></div>
+    <div class="done-flag">完成判据：plans 文档在位 + Gate-2 审计干净 → 行翻 <code>PLANNED</code>。</div>
+  </div>
+</div>
+
+<!-- C -->
+<div class="stage" id="C">
+  <div class="head"><span class="badge">阶段 C</span><h3>开发（六门）+ 提交即审计</h3><span class="who ai">AI 主导·你抽查</span></div>
+  <div class="body">
+    <p style="font-size:13.8px;color:#374151">六门：Plan → 独立计划审 → TDD → 实现审 → 设备/集成验证 → 合并。<b>第一个 feature 你先前台盯一遍</b>，确认闭环（含提交即审计）真的通，再放手给 cron。</p>
+    <div class="prompt"><pre class="full"><code><span class="lbl">提示词 · 前台跑通第一件事</span>用 /feature-workflow 实现 feature #N。严格走六门不跳门：每个 WI 先写失败测试(RED)→最小实现(GREEN)
+→run-codex Gate-4 审 →行为型 WI 在模拟器/真机切片验证 →最终 WI 按 verification/SCHEMA.md 落 result:pass 证据
+→版本 bump 作分支末 commit →PR 用 Refs #N。每过一门在 GH issue 追一条时间线评论。
+注意:push 时 pre-push 闸门会自动审改动的 Swift——把它的结论讲给我。</code></pre></div>
+    <table class="tbl">
+      <tr><th>门</th><th>落到磁盘的产出</th><th>哪个机关把关</th></tr>
+      <tr><td>G3 TDD</td><td>测试 + 实现（&lt;300 行、actor 隔离）</td><td>rule 10/50（纪律）</td></tr>
+      <tr><td>G4 审计</td><td><code>.claude/codex-audits/&lt;branch&gt;.md</code></td><td><code>check_codex_audit_artifact</code>（merge 前必有）</td></tr>
+      <tr><td><b>push</b></td><td><code>codex-audits/prepush-&lt;sha&gt;.md</code></td><td><b>pre-push 闸门</b>（Critical/High 挡推送）</td></tr>
+      <tr><td>G5 验证</td><td><code>dev-docs/verification/feature-N-&lt;date&gt;.md</code></td><td><code>check_terminal_status_evidence</code>（没证据不准翻 VERIFIED）</td></tr>
+      <tr><td>G6 合并</td><td>合并 + tag + 台账翻 DONE/VERIFIED</td><td>Stop 钩子扫未验证 DONE / 审计欠债</td></tr>
+    </table>
+    <div class="done-flag">完成判据：每个 WI 过六门；最终 WI 全验收 + 证据文件 → feature 翻 <code>VERIFIED</code>。</div>
+  </div>
+</div>
+
+<!-- D -->
+<div class="stage" id="D">
+  <div class="head"><span class="badge">阶段 D</span><h3>修 bug</h3><span class="who ai">AI 主导</span></div>
+  <div class="body">
+    <p style="font-size:13.8px;color:#374151">bug 不走计划+计划审（是反应式的），但走实现审 + 验证门 + 提交即审计。</p>
+    <div class="prompt"><pre class="full"><code><span class="lbl">提示词 · 修一个 bug</span>用 /fix-issue #N 修这个 bug：Understand → 写复现失败测试(RED) → 修(GREEN) → REFACTOR →
+run-codex 审 → 验证 → 台账翻 FIXED。push 时让 pre-push 闸门复审改动。</code></pre></div>
+    <div class="done-flag">完成判据：复现测试由红转绿；行翻 <code>FIXED</code>；GH issue 据验证关单。</div>
+  </div>
+</div>
+
+<!-- E -->
+<div class="stage" id="E">
+  <div class="head"><span class="badge">阶段 E</span><h3>无人值守（cron 闭环）</h3><span class="who mix">点火靠你·之后自驱</span></div>
+  <div class="body">
+    <p style="font-size:13.8px;color:#374151">三前提：① 台账有活（阶段 B）；② 免确认授权（§02-4）；③ 闭环已前台跑通（阶段 C）。齐了才点火。</p>
+    <div class="prompt"><pre class="full"><code><span class="lbl">提示词 · 启动 cron 四件套</span>用 /cron-bootstrap 按 .claude/cron-prompts/ 点火 verify/bugfix/feature/watchdog 四个 cron。
+每轮：先 echo FIRED 落 .claude/cron-logs/ → 在 scope 守卫内挑一件活干完 → echo ENDED &lt;outcome&gt;
+(work_done/no_work_in_scope/blocked/error)。没活干如实记 no_work_in_scope，别编活。
+运行期间常规操作自动放行，别停下等我。</code></pre></div>
+    <table class="tbl">
+      <tr><th>cron</th><th>节奏(建议)</th><th>吃什么燃料</th></tr>
+      <tr><td>verify</td><td>每小时</td><td>DONE/待验证行</td></tr>
+      <tr><td>bugfix</td><td>每小时</td><td><code>bugs.md</code> TODO + GH</td></tr>
+      <tr><td>feature</td><td>每 2 小时</td><td><code>features.md</code> PLANNED</td></tr>
+      <tr><td>watchdog</td><td>每天</td><td>续期 cron / 清 ghost / 查陈旧进程</td></tr>
+    </table>
+    <div class="warnbox">⏰ cron 是会话级、7 天自动过期；关机/换会话后重新发"启动 cron"提示词即可。每轮如实落账是你早间复盘的唯一凭据。</div>
+  </div>
+</div>
+
+<!-- 速查 -->
+<h2 class="sec" id="daily"><span class="n">05</span>日常提示词速查表</h2>
+<table class="tbl">
+<tr><th style="width:150px">你想干什么</th><th>提示词（拿来即用）</th></tr>
+<tr><td>认识/恢复上下文</td><td>读 AGENTS.md + docs/ + dev-docs/，告诉我每个未完成 feature 卡在六门哪门、依据哪个文件。</td></tr>
+<tr><td>提需求</td><td>把「&lt;需求&gt;」整理成 features.md 一行（五字段）+ 建 GH issue。</td></tr>
+<tr><td>报 bug</td><td>把「&lt;现象&gt;」登记到 bugs.md + 建 GH issue，先别修。</td></tr>
+<tr><td>做功能</td><td>用 /feature-workflow 实现 feature #N，严格六门，push 时讲 pre-push 闸门结论。</td></tr>
+<tr><td>修 bug</td><td>用 /fix-issue #N，RED→GREEN→审→验→翻 FIXED。</td></tr>
+<tr><td>手动审一段代码</td><td>scripts/run-codex.sh -e high 审 &lt;文件&gt;，按 DIMENSIONS-ios 给 file:line + 严重度 + 修法。</td></tr>
+<tr><td>早间复盘</td><td>看 cron-logs/，用要点汇报昨夜每个 cron 的 FIRED→ENDED、产出、报错、需我处理的卡点。</td></tr>
+<tr><td>喊停</td><td>停止所有 cron 并交接：现在到哪步、什么没做完。</td></tr>
+</table>
+
+<!-- human -->
+<h2 class="sec" id="human"><span class="n">06</span>人类裁量权只剩三处 + 免确认</h2>
+<div class="card" style="font-size:13.8px">
+<p>把绝大多数决策外置给规则后，<b>只有三件事仍需要你这个人</b>：</p>
+<ol style="margin:6px 0">
+<li><b>设计</b>：UI 来自 claude.ai/design 的交接包，AI 不自创（rule 51）。</li>
+<li><b>方向选择</b>：需求范围、降级行为(如某能力不可用时怎么办)这类产品判断——AI 不替你拍。</li>
+<li><b>真机/物理验证</b>：需要眼睛看、手摸的验收（权限横幅、音频路由、回声），AI 跑不了。</li>
+</ol>
+<p>其余全部交给：cron(何时开始) + dev-docs(记住一切) + 治理钩子 & 提交即审计(守住纪律)。<b>免确认授权</b>是让这套自驱起来的开关——常规工具调用预先放行，cron 会话才不会卡在权限弹窗。</p>
+</div>
+
+<!-- order -->
+<h2 class="sec" id="order"><span class="n">07</span>一页流程图：完整启动顺序</h2>
+<div class="flow">
+  <div class="b"><b>0 点火</b>codex 登录 + install.sh + 让助理读项目 + 免确认</div>
+  <div class="arr">→</div>
+  <div class="b"><b>A 设计</b>设计稿入 designs/</div>
+  <div class="arr">→</div>
+  <div class="b"><b>B 计划</b>台账 PLANNED + plans/ + Gate2 审</div>
+  <div class="arr">→</div>
+  <div class="b"><b>C 开发</b>六门 TDD + 每 push 过审计闸门</div>
+  <div class="arr">→</div>
+  <div class="b"><b>D 修 bug</b>/fix-issue 闭环</div>
+  <div class="arr">→</div>
+  <div class="b"><b>E 无人值守</b>cron 四件套点火</div>
+</div>
+<div class="tip">🔁 <b>一句话</b>：vrecorder-v2 = vrecorder 的纪律 + 一台"出门安检"。先把设计/计划灌进磁盘、前台跑通一遍闭环（含提交即审计），最后才让 cron 这台闹钟开始自动叫醒它。倒着做（先点 cron 再补料）只会空转。</div>
+
+<footer>
+  <p>vrecorder-v2 启动教程（操作者版）。对标 vrecorder《无人值守开发-启动教程》风格，按 vrecorder-v2 实测骨架重写。小白入门版见 <code>冷启动手册-小白版-从初始化到无人值守.html</code>。核心差异引擎"提交即审计"实现见 <code>scripts/git-hooks/pre-push</code> + <code>dev-docs/audit/DIMENSIONS-ios.md</code>。</p>
+</footer>
+
+</div>
+</body>
+</html>
