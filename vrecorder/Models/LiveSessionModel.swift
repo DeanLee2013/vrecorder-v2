@@ -97,7 +97,7 @@ final class LiveSessionModel {
         startTranslationQueue(gen: gen)
         audio?.onEvent = { [weak self] event in
             switch event {
-            case .interruptionBegan, .routeLost: self?.stop()
+            case .interruptionBegan, .routeLost, .routeChanged: self?.stop()
             case .interruptionEnded: break        // require an explicit re-tap to resume
             }
         }

@@ -9,10 +9,25 @@ import AVFoundation
 
 @MainActor
 final class AudioSessionController {
-    enum Event {
+    enum Event: Equatable {
         case interruptionBegan
         case interruptionEnded(shouldResume: Bool)
-        case routeLost          // e.g. AirPods disconnected — input path changed
+        case routeLost          // e.g. AirPods disconnected — input path gone
+        case routeChanged       // e.g. AirPods connected / input switched mid-session
+    }
+
+    /// Pure mapping (unit-tested) from a route-change reason to a lifecycle event.
+    nonisolated static func event(forRouteChangeReason reason: AVAudioSession.RouteChangeReason) -> Event? {
+        switch reason {
+        case .oldDeviceUnavailable:
+            return .routeLost
+        case .newDeviceAvailable, .override, .categoryChange:
+            return .routeChanged
+        default:
+            // .routeConfigurationChange (frequent, minor: sample-rate/buffer) and
+            // others are not actionable — ignore to avoid spurious teardowns.
+            return nil
+        }
     }
 
     private let session = AVAudioSession.sharedInstance()
@@ -22,8 +37,11 @@ final class AudioSessionController {
     private var tokens: [NSObjectProtocol] = []
 
     func activate() throws {
+        // allowBluetoothHFP makes a paired headset's microphone available for
+        // capture (AirPods); A2DP keeps high-quality output (bug #3).
         try session.setCategory(.playAndRecord, mode: .measurement,
-                                options: [.duckOthers, .defaultToSpeaker])
+                                options: [.duckOthers, .defaultToSpeaker,
+                                          .allowBluetoothHFP, .allowBluetoothA2DP])
         try session.setActive(true, options: .notifyOthersOnDeactivation)
         active = true
 
@@ -77,7 +95,11 @@ final class AudioSessionController {
 
     private func handleRouteChange(reasonRaw: UInt?) {
         guard let reasonRaw,
-              let reason = AVAudioSession.RouteChangeReason(rawValue: reasonRaw) else { return }
-        if reason == .oldDeviceUnavailable { onEvent?(.routeLost) }
+              let reason = AVAudioSession.RouteChangeReason(rawValue: reasonRaw),
+              let event = Self.event(forRouteChangeReason: reason) else { return }
+        // routeLost = current input gone; routeChanged = input may have switched and
+        // the running tap is bound to the old route. Either way tear down (re-tap
+        // resumes on the new device) — consistent with the interruption policy (bug #3).
+        onEvent?(event)
     }
 }
