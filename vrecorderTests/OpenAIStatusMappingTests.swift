@@ -21,7 +21,10 @@ private final class StubURLProtocol: URLProtocol, @unchecked Sendable {
     override func stopLoading() {}
 }
 
-@Suite("OpenAI HTTP status mapping")
+// `.serialized`: the stub's `nonisolated(unsafe)` static status/body are shared
+// global state mutated per test. Only this suite touches them, so running its
+// tests one-at-a-time removes the parallel-testing data race (bug #6 / GH #16).
+@Suite("OpenAI HTTP status mapping", .serialized)
 struct OpenAIStatusMappingTests {
     private func engine() -> OpenAITranslationEngine {
         let config = URLSessionConfiguration.ephemeral
