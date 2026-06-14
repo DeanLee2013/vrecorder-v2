@@ -41,6 +41,18 @@ final class AppEnvironment {
             translator: translator,
             audio: AudioSessionController()
         )
+
+        #if DEBUG
+        // Launch-time fixture for UI tests that need a deterministic ACTIVE session
+        // at startup (e.g. the background-stop lifecycle test) without a mic or the
+        // URL scheme. DEBUG + uiTesting only.
+        if uiTesting, ProcessInfo.processInfo.arguments.contains("-fixtureListening") {
+            session.installFixture(
+                a: [TranscriptLine(status: .final, text: "测试")],
+                b: [TranscriptLine(status: .final, text: "test")],
+                listening: true)
+        }
+        #endif
     }
 
     /// The real Keychain-backed store (DEBUG-seeded once). The only store Release

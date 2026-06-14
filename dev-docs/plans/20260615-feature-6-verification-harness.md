@@ -26,6 +26,7 @@
   (rule 50 §7); full plist key templates (copy generated plist as the base);
   feature-#2-VERIFIED decoupling propagated to WI-4 + Docs Sync; `#7`/path
   propagated. **Rule-47 3-round plan-audit cap reached → PLANNED; Gate 4 is the net.**
+- **WI-3 deviation (implementation learning)** — the Debug/Release plist URL-scheme registration proved fiddly/high-risk (full plist key templates with GENERATE_INFOPLIST_FILE:NO). WI-3 shipped the DebugBridge struct + .onOpenURL wiring + unit tests, and used **launch-arg fixture injection** (`-fixtureListening`) for the lifecycle UI test (covers current needs at lower risk). The `vrecorder-debug://` URL-scheme registration + the mid-session-injection E2E URL test are split to **feature #9** (GH #23).
 
 ## Problem
 The `.claude/cron-prompts/verify.md` workflow assumes a CU-free verification harness

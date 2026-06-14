@@ -17,6 +17,7 @@
 		28ADC2D9BDE83B71D92E8621 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E7CF138DC442B4208C38FE1 /* Log.swift */; };
 		2EACBFD9A7158E3DB9BCEBE0 /* RecognitionEventCoalescer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33FF42C9A1452C30A57F2E86 /* RecognitionEventCoalescer.swift */; };
 		32C1620AB7DE6322A90A5E0B /* APIKeyEntryModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C56144063123BBAD9578F36 /* APIKeyEntryModelTests.swift */; };
+		3586A30A303E6D2832737034 /* DebugBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80E767D7D85CA9C328A3418A /* DebugBridgeTests.swift */; };
 		3970803AD402C4B9A76E75D7 /* APIKeyEntryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2A1B2B5015586830A3D15DD /* APIKeyEntryModel.swift */; };
 		3A0E795E48FD9D1FF5706ACD /* LiveSessionFixtureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6ED22B520DB80DE541BBC80 /* LiveSessionFixtureTests.swift */; };
 		424AD21D910E83AF9D42F5F9 /* AppleSpeechRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C923BA1FFC84279540C7315A /* AppleSpeechRecognizer.swift */; };
@@ -32,7 +33,9 @@
 		9A62D41249B504EA13BE46BA /* Palette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35379CA89CC5E2082B1151CC /* Palette.swift */; };
 		9B009850D59563F3242DFAEF /* LiveSessionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43DCE3891E67B759EE664E94 /* LiveSessionModel.swift */; };
 		A243D9920E41B4D958F91AD8 /* TranscriptLineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9356CECCE16BD7BA708C0085 /* TranscriptLineView.swift */; };
+		AC2FF9BCDD45B78DA61580AA /* LifecycleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29BE499F0F843D8911D5CB11 /* LifecycleUITests.swift */; };
 		B3F828C55A648351FE31D2EF /* WaterSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4CAB8EE2621639C6D99E947 /* WaterSurface.swift */; };
+		B59BF9A4CF0E0DDB8613D371 /* DebugBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A205C3360868C7E5DDF0EB /* DebugBridge.swift */; };
 		B776CFE6045F6DF0F9D1949E /* LiveScreenUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B37859C7D99BDFD8F87BB356 /* LiveScreenUITests.swift */; };
 		B93F0F125810C06C0DCAAD8D /* LiveBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3548C4B3F60267E9150363 /* LiveBadge.swift */; };
 		BEAA3C178A1EEDAB52974312 /* AudioTapBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF4A7E55163E3E230D076B79 /* AudioTapBridgeTests.swift */; };
@@ -74,6 +77,7 @@
 		18F1961BDE7B59FDF65FD530 /* OpenAITranslationEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAITranslationEngine.swift; sourceTree = "<group>"; };
 		1CB5126DE019C292D463604F /* RecognitionEventCoalescerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecognitionEventCoalescerTests.swift; sourceTree = "<group>"; };
 		2905A2BA04101E59D2997B63 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
+		29BE499F0F843D8911D5CB11 /* LifecycleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifecycleUITests.swift; sourceTree = "<group>"; };
 		2ACF27ACEBD2DD12B8132A55 /* Typography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Typography.swift; sourceTree = "<group>"; };
 		32D105272930B0F28E68A7A8 /* AudioTapBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioTapBridge.swift; sourceTree = "<group>"; };
 		33FF42C9A1452C30A57F2E86 /* RecognitionEventCoalescer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecognitionEventCoalescer.swift; sourceTree = "<group>"; };
@@ -88,6 +92,8 @@
 		6A1A3B4A4BF1AE9F6EE8162E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7A38BB4F410E3538C2A70E55 /* TranscriptLine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptLine.swift; sourceTree = "<group>"; };
 		7EAD68889FA5FB914C737A1C /* LiveScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveScreen.swift; sourceTree = "<group>"; };
+		80E767D7D85CA9C328A3418A /* DebugBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugBridgeTests.swift; sourceTree = "<group>"; };
+		88A205C3360868C7E5DDF0EB /* DebugBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugBridge.swift; sourceTree = "<group>"; };
 		8C56144063123BBAD9578F36 /* APIKeyEntryModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeyEntryModelTests.swift; sourceTree = "<group>"; };
 		9356CECCE16BD7BA708C0085 /* TranscriptLineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptLineView.swift; sourceTree = "<group>"; };
 		9698B3CBC73ED00016C1FDB9 /* AudioSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionController.swift; sourceTree = "<group>"; };
@@ -127,6 +133,7 @@
 			children = (
 				C7F0333DF9FBCA9165B32226 /* App */,
 				2551BBF34E15DB0C6A3C875B /* Audio */,
+				39983B479082B3ED6E36A00F /* Debug */,
 				0ED3C40FE49D14040392E0A4 /* DesignSystem */,
 				4AC9BB6ED47CBB94136E8061 /* Engines */,
 				B49BB6F01AC8A767D4321EF5 /* Models */,
@@ -179,6 +186,14 @@
 			path = Security;
 			sourceTree = "<group>";
 		};
+		39983B479082B3ED6E36A00F /* Debug */ = {
+			isa = PBXGroup;
+			children = (
+				88A205C3360868C7E5DDF0EB /* DebugBridge.swift */,
+			);
+			path = Debug;
+			sourceTree = "<group>";
+		};
 		4AC9BB6ED47CBB94136E8061 /* Engines */ = {
 			isa = PBXGroup;
 			children = (
@@ -202,6 +217,7 @@
 		6BCF225487145C5A2026E3B5 /* vrecorderUITests */ = {
 			isa = PBXGroup;
 			children = (
+				29BE499F0F843D8911D5CB11 /* LifecycleUITests.swift */,
 				B37859C7D99BDFD8F87BB356 /* LiveScreenUITests.swift */,
 			);
 			path = vrecorderUITests;
@@ -254,6 +270,7 @@
 				8C56144063123BBAD9578F36 /* APIKeyEntryModelTests.swift */,
 				E171BDC8642B9571E1995476 /* AudioSessionControllerTests.swift */,
 				DF4A7E55163E3E230D076B79 /* AudioTapBridgeTests.swift */,
+				80E767D7D85CA9C328A3418A /* DebugBridgeTests.swift */,
 				5CB9E1B6BC81BE95091BFCC7 /* KeychainAPIKeyStoreTests.swift */,
 				F6ED22B520DB80DE541BBC80 /* LiveSessionFixtureTests.swift */,
 				F2B4D17D7B8994F0EA964849 /* LiveSessionModelTests.swift */,
@@ -401,6 +418,7 @@
 				424AD21D910E83AF9D42F5F9 /* AppleSpeechRecognizer.swift in Sources */,
 				E215807CC1FABAECB0ED8DD9 /* AudioSessionController.swift in Sources */,
 				73017F8308853DACFAD0AFAB /* AudioTapBridge.swift in Sources */,
+				B59BF9A4CF0E0DDB8613D371 /* DebugBridge.swift in Sources */,
 				0EFB5E68DDA69FA498C87ECB /* EngineProtocols.swift in Sources */,
 				B93F0F125810C06C0DCAAD8D /* LiveBadge.swift in Sources */,
 				993DB1495E915AA8AB0F1ED5 /* LiveScreen.swift in Sources */,
@@ -429,6 +447,7 @@
 				32C1620AB7DE6322A90A5E0B /* APIKeyEntryModelTests.swift in Sources */,
 				0C3CFAA1491E28DF5C943317 /* AudioSessionControllerTests.swift in Sources */,
 				BEAA3C178A1EEDAB52974312 /* AudioTapBridgeTests.swift in Sources */,
+				3586A30A303E6D2832737034 /* DebugBridgeTests.swift in Sources */,
 				8931A9E202F5ABF83225595D /* KeychainAPIKeyStoreTests.swift in Sources */,
 				3A0E795E48FD9D1FF5706ACD /* LiveSessionFixtureTests.swift in Sources */,
 				0D7A87122D4A3A5F9DEB8AAC /* LiveSessionModelTests.swift in Sources */,
@@ -444,6 +463,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AC2FF9BCDD45B78DA61580AA /* LifecycleUITests.swift in Sources */,
 				B776CFE6045F6DF0F9D1949E /* LiveScreenUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -470,7 +490,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "VRecorder 需要使用麦克风进行实时同声传译。";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "VRecorder 使用语音识别将你的发言实时转写为文字。";
@@ -483,7 +503,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.4.0;
+				MARKETING_VERSION = 0.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.vrecorder.app;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -576,7 +596,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -597,7 +617,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 0.4.0;
+				MARKETING_VERSION = 0.5.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -662,7 +682,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -677,7 +697,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 0.4.0;
+				MARKETING_VERSION = 0.5.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -695,7 +715,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				EXCLUDED_SOURCE_FILE_NAMES = "openai-key.txt";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "VRecorder 需要使用麦克风进行实时同声传译。";
@@ -709,7 +729,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.4.0;
+				MARKETING_VERSION = 0.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.vrecorder.app;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
