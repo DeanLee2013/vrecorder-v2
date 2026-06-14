@@ -32,4 +32,19 @@ struct LiveSessionModelTests {
         for i in 0..<6 { m.pushA(.init(status: .final, text: "句\(i)")) }
         #expect(m.partyA.count <= 3)
     }
+
+    @Test func micAndSpeechDenialHaveDistinctMessages() {
+        let mic = LiveSessionModel.message(for: PipelineError.micPermissionDenied)
+        let speech = LiveSessionModel.message(for: PipelineError.speechPermissionDenied)
+        #expect(mic != speech)
+        #expect(mic.contains("麦克风"))
+        #expect(speech.contains("语音识别"))
+    }
+
+    @Test func timeoutIsNotLabeledOffline() {
+        let timeout = LiveSessionModel.message(for: PipelineError.timeout)
+        let offline = LiveSessionModel.message(for: PipelineError.offline)
+        #expect(timeout != offline)
+        #expect(!timeout.contains("网络不可用"))
+    }
 }

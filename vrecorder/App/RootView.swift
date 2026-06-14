@@ -13,7 +13,9 @@ struct RootView: View {
             LiveScreen(session: env.session, onSettings: { showSettings = true })
 
             if showSettings {
-                SettingsScreen(onBack: { showSettings = false })
+                SettingsScreen(
+                    onBack: { showSettings = false },
+                    apiKeyConfigured: env.keyStore.key(for: APIProvider.openAI) != nil)
                     .transition(.move(edge: .trailing))
                     .zIndex(1)
             }

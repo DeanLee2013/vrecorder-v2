@@ -38,12 +38,16 @@ struct TranslationCapabilities {
     let providerName: String
 }
 
-/// Domain errors the UI can distinguish (never mislabel a timeout as offline).
+/// Domain errors the UI can distinguish (never mislabel a timeout as offline,
+/// nor collapse mic denial and speech-recognition denial — they need different
+/// recovery instructions). See DIMENSIONS-ios.md §6.
 enum PipelineError: Error, Equatable {
     case offline
     case timeout
     case rateLimited
-    case permissionDenied
+    case micPermissionDenied
+    case speechPermissionDenied
     case missingAPIKey
+    case recognizerUnavailable
     case providerError(String)
 }

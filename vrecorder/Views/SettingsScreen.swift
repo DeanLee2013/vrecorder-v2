@@ -7,6 +7,8 @@ import SwiftUI
 
 struct SettingsScreen: View {
     let onBack: () -> Void
+    /// Reflects real Keychain state — never hardcode "已配置" (audit #2).
+    var apiKeyConfigured: Bool = false
 
     @State private var engine = "Claude"
     @State private var stream = true
@@ -22,7 +24,7 @@ struct SettingsScreen: View {
                 VStack(spacing: 24) {
                     group("翻译引擎") {
                         cycleRow("翻译服务", $engine, ["Claude", "OpenAI"])
-                        navRow("API 密钥", value: "已配置")
+                        navRow("API 密钥", value: apiKeyConfigured ? "已配置" : "未配置")
                         toggleRow("流式翻译", $stream, last: true)
                     }
                     group("语音播报") {

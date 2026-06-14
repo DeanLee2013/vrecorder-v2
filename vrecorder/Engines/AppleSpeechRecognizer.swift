@@ -1,14 +1,14 @@
 //  AppleSpeechRecognizer.swift
 //  Purpose: On-device SpeechRecognizing via SFSpeechRecognizer + AVAudioEngine.
-//  Emits partial results as text accrues and a final when the recognizer
-//  finalizes. `stop` tears down the tap, audio engine and recognition task so
-//  no orphan recognition continues. See rules/50 §2-3.
+//  The audio engine runs continuously for the whole session; recognition
+//  requests ROTATE on each final so one session interprets many utterances
+//  (the recognizer's own endpointing segments them). Recognition errors finish
+//  the stream with a mapped PipelineError; `stop` tears down tap, engine,
+//  request and task so nothing keeps recognizing. rules/50 §2-3, DIMENSIONS §2-3,6.
 
 import AVFoundation
 import Speech
 
-/// MainActor-bound because it owns AVAudioEngine + SFSpeechRecognitionTask,
-/// which are not safe to drive from arbitrary threads.
 @MainActor
 final class AppleSpeechRecognizer: SpeechRecognizing {
     nonisolated let capabilities = SpeechCapabilities(
@@ -20,60 +20,88 @@ final class AppleSpeechRecognizer: SpeechRecognizing {
     private var task: SFSpeechRecognitionTask?
     private var recognizer: SFSpeechRecognizer?
     private var continuation: AsyncThrowingStream<TranscriptEvent, Error>.Continuation?
+    private var running = false
 
-    /// Request mic + speech permission. Throws PipelineError.permissionDenied.
+    /// Request speech + mic permission. Throws distinct errors so the UI can give
+    /// the right recovery instruction (DIMENSIONS §6).
     static func requestAuthorization() async throws {
         let speech = await withCheckedContinuation { c in
             SFSpeechRecognizer.requestAuthorization { c.resume(returning: $0) }
         }
-        guard speech == .authorized else { throw PipelineError.permissionDenied }
+        guard speech == .authorized else { throw PipelineError.speechPermissionDenied }
         let mic = await AVAudioApplication.requestRecordPermission()
-        guard mic else { throw PipelineError.permissionDenied }
+        guard mic else { throw PipelineError.micPermissionDenied }
     }
 
     func start(locale: Locale) throws -> AsyncThrowingStream<TranscriptEvent, Error> {
         AsyncThrowingStream { continuation in
-            do { try self.begin(locale: locale, continuation: continuation) }
-            catch { continuation.finish(throwing: error) }
+            do {
+                try self.begin(locale: locale, continuation: continuation)
+            } catch {
+                continuation.finish(throwing: error)
+                return
+            }
+            continuation.onTermination = { [weak self] _ in
+                Task { @MainActor in self?.stop() }
+            }
         }
     }
 
-    private func begin(locale: Locale, continuation: AsyncThrowingStream<TranscriptEvent, Error>.Continuation) throws {
+    private func begin(locale: Locale,
+                       continuation: AsyncThrowingStream<TranscriptEvent, Error>.Continuation) throws {
         guard let recognizer = SFSpeechRecognizer(locale: locale), recognizer.isAvailable else {
-            throw PipelineError.providerError("recognizer unavailable for \(locale.identifier)")
+            throw PipelineError.recognizerUnavailable
         }
         self.recognizer = recognizer
         self.continuation = continuation
-
-        let request = SFSpeechAudioBufferRecognitionRequest()
-        request.shouldReportPartialResults = true
-        self.request = request
+        self.running = true
 
         let input = audioEngine.inputNode
         let format = input.outputFormat(forBus: 0)
-        input.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak request] buffer, _ in
-            request?.append(buffer)
+        input.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, _ in
+            self?.request?.append(buffer)
         }
         audioEngine.prepare()
         try audioEngine.start()
+        startSegment()
+    }
 
+    /// Begin recognizing the next utterance on the still-running audio engine.
+    private func startSegment() {
+        guard running, let recognizer else { return }
+        let request = SFSpeechAudioBufferRecognitionRequest()
+        request.shouldReportPartialResults = true
+        self.request = request
         task = recognizer.recognitionTask(with: request) { [weak self] result, error in
             Task { @MainActor in
+                guard let self, self.running else { return }
                 if let result {
                     let text = result.bestTranscription.formattedString
-                    continuation.yield(result.isFinal ? .final(text) : .partial(text))
-                    if result.isFinal { self?.stop() }
+                    if result.isFinal {
+                        if !text.isEmpty { self.continuation?.yield(.final(text)) }
+                        self.task = nil
+                        self.request = nil
+                        self.startSegment()           // rotate → keep interpreting
+                    } else {
+                        self.continuation?.yield(.partial(text))
+                    }
+                } else if let error {
+                    self.finish(throwing: error)
                 }
-                if error != nil { self?.stop() }
             }
-        }
-
-        continuation.onTermination = { [weak self] _ in
-            Task { @MainActor in self?.stop() }
         }
     }
 
+    private func finish(throwing error: Error) {
+        let mapped: PipelineError = (error as? PipelineError)
+            ?? .providerError("recognition: \((error as NSError).code)")
+        let cont = continuation
+        stop()
+        cont?.finish(throwing: mapped)
+    }
+
     func stop() {
+        running = false
         audioEngine.inputNode.removeTap(onBus: 0)
         if audioEngine.isRunning { audioEngine.stop() }
         request?.endAudio()
