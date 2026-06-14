@@ -1,0 +1,93 @@
+<!doctype html>
+<!--
+  Committed design mockup — API Key Entry sheet (feature #2).
+  Depicts the surface in the same light-scope design system as
+  design/settings-screen.jsx, using only existing VR tokens. Open in a browser
+  to view; this is the rule-51 "HTML depicting the surface" artifact. Authored
+  under the design owner's explicit authorization (user, 2026-06-14) to build
+  this surface from the committed design system (no new visual language).
+-->
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VRecorder — API 密钥录入页</title>
+<style>
+  :root {
+    --ink-50:#F7F7FB; --ink-100:#E9E9F2; --ink-400:#6B6B85; --ink-900:#0C0C14;
+    --violet-500:#7050FF; --violet-600:#5B3DF5; --red-500:#FF5C5C;
+    --card:#FFFFFF; --hairline:rgba(12,12,20,0.08);
+    --shadow:0 1px 4px rgba(12,12,20,0.08), 0 4px 16px rgba(12,12,20,0.06);
+    --font:-apple-system,"PingFang SC","Segoe UI",sans-serif;
+  }
+  body{margin:0;background:#1c1c2a;font-family:var(--font);display:flex;
+       justify-content:center;padding:40px;gap:32px;flex-wrap:wrap;}
+  .phone{width:340px;background:var(--ink-50);border-radius:36px;overflow:hidden;
+         box-shadow:0 20px 60px rgba(0,0,0,.4);}
+  .sheet{display:flex;flex-direction:column;min-height:560px;padding:0 0 24px;}
+  .hdr{display:flex;align-items:center;justify-content:space-between;
+       padding:18px 20px 6px;}
+  .hdr .cancel{color:var(--ink-400);font-size:17px;}
+  .hdr .save{font-size:17px;font-weight:600;}
+  .save.on{color:var(--violet-600);} .save.off{color:var(--ink-400);opacity:.5;}
+  h1{margin:4px 20px 18px;font-size:28px;font-weight:700;color:var(--ink-900);}
+  .cap{font-size:13px;color:var(--ink-400);letter-spacing:.06em;
+       padding:0 16px;margin:0 20px;}
+  .card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);
+        margin:8px 20px 0;overflow:hidden;}
+  .row{display:flex;align-items:center;gap:12px;min-height:50px;padding:0 16px;
+       font-size:17px;color:var(--ink-900);}
+  .row + .row{border-top:1px solid var(--hairline);}
+  .row input{flex:1;border:none;outline:none;font-size:17px;font-family:var(--font);
+             color:var(--ink-900);background:transparent;letter-spacing:.1em;}
+  .row .label{flex:0 0 auto;color:var(--ink-400);}
+  .masked{font-size:13px;color:var(--ink-400);margin:8px 20px 0;}
+  .destructive{color:var(--red-500);}
+  .notice{font-size:13px;color:var(--ink-400);line-height:1.5;margin:auto 20px 0;
+          padding-top:28px;}
+  .state-label{position:absolute;transform:translateY(-22px);font-size:11px;
+               color:#9aa;letter-spacing:.08em;}
+  .col{position:relative;}
+  figcaption{color:#cfcfe0;font-size:12px;text-align:center;margin-top:10px;}
+</style>
+</head>
+<body>
+
+<figure class="col">
+  <div class="phone"><div class="sheet">
+    <div class="hdr"><span class="cancel">取消</span><span class="save on">保存</span></div>
+    <h1>API 密钥</h1>
+    <div class="cap">OPENAI</div>
+    <div class="card">
+      <div class="row"><span class="label">密钥</span>
+        <input type="password" value="sk-XXXXXXXXXXXXXXXX" /></div>
+    </div>
+    <div class="masked">当前：sk-…AB12</div>
+    <div class="card" style="margin-top:24px">
+      <div class="row destructive">清除密钥</div>
+    </div>
+    <div class="notice">你的密钥保存在本机钥匙串（Keychain）。同传时会以
+      Bearer 凭证经 TLS 发送给你选择的服务商（OpenAI），不会发给其它第三方。
+      设备被攻破时密钥仍可能泄露。</div>
+  </div></div>
+  <figcaption>已有密钥 · 输入有效 → 保存可用 · 显示清除行</figcaption>
+</figure>
+
+<figure class="col">
+  <div class="phone"><div class="sheet">
+    <div class="hdr"><span class="cancel">取消</span><span class="save off">保存</span></div>
+    <h1>API 密钥</h1>
+    <div class="cap">OPENAI</div>
+    <div class="card">
+      <div class="row"><span class="label">密钥</span>
+        <input type="password" value="" placeholder="sk-…" /></div>
+    </div>
+    <div class="notice">你的密钥保存在本机钥匙串（Keychain）。同传时会以
+      Bearer 凭证经 TLS 发送给你选择的服务商（OpenAI），不会发给其它第三方。
+      设备被攻破时密钥仍可能泄露。</div>
+  </div></div>
+  <figcaption>无密钥 · 输入为空 → 保存禁用 · 无清除行</figcaption>
+</figure>
+
+</body>
+</html>
