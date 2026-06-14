@@ -11,8 +11,16 @@ final class PCMRollover {
     private var buffers: [AVAudioPCMBuffer] = []
     private let cap: Int
 
-    /// `cap` = max buffers retained (≈ cap × tap-buffer duration). Older buffers
-    /// beyond the cap are dropped so the gap can't grow unbounded.
+    /// `cap` = max buffers retained (≈ cap × tap-buffer duration, ~0.5s at 24 ×
+    /// 1024-frame @ 48 kHz). A realistic rotation gap (the async final→startSegment
+    /// hop) is a few buffers, well under cap, so nothing is dropped and the next
+    /// utterance's onset is preserved.
+    ///
+    /// **Known limitation** (bug #1 / feature #4): if rotation stalls for longer
+    /// than `cap` while the user keeps speaking, the oldest buffers (early onset)
+    /// are dropped and that span can still truncate. The robust fix is a dedicated
+    /// VAD/segmentation stage that rotates with no gap (tracked as feature #4); the
+    /// ring is the pragmatic mitigation for the common case.
     init(cap: Int) { self.cap = max(0, cap) }
 
     var count: Int { buffers.count }
