@@ -1,7 +1,12 @@
 # Feature #2 — API key entry (Keychain editor)
 
-> Gate-1 plan, **revision 4** (addresses Codex plan-audit rounds 1–3).
-> Status: PLANNED after Gate-2 audit passes.
+> Gate-1 plan, **revision 5** (addresses Codex plan-audit rounds 1–4).
+> Status: **PLANNED → IN PROGRESS.** Plan audit ran 4 rounds and converged
+> (round 4 resolved all of round 3; remaining items were polish: op-specific
+> error message + format-agnostic validation, both folded in here). Per rule 47's
+> 3-round plan-audit cap + the design owner's standing autonomous authorization,
+> proceeding to Gate 3. Gate 4 (pre-push Codex audit on the implementation) is the
+> code-level safety net.
 > **Estimated PR size** (audit-3 #5), single WI/PR: **5 production** files
 > (`APIKeyStore.swift` mod, `APIKeyEntryModel.swift` new, `APIKeyEntryView.swift`
 > new, `SettingsScreen.swift` mod, `RootView.swift` mod) + **2 test** files +
@@ -111,22 +116,27 @@ become real status-sequence tests, not InMemory stand-ins.
   - `var draft: String = ""`
   - `private(set) var hasExistingKey: Bool` — set in `init` and after save/clear
   - `private(set) var maskedExisting: String?` — recomputed on the same events
-  - `private(set) var saveError: Bool = false`
+  - `private(set) var errorMessage: String?` — **operation-specific** (audit-4):
+    `nil` normally; "保存失败，请重试（已保留原密钥）" on save failure; "清除失败，
+    请重试" on clear failure. Cleared when the user edits `draft` or retries.
   - `var canSave: Bool` — `Self.isValid(draft)`
   - `func save() -> Bool` — guards on `canSave` (so a direct call can't bypass the
     disabled button), trims, atomic write; on success refreshes state + clears
     `draft`; on failure sets `saveError`, keeps state, returns false
-  - `@discardableResult func clear() -> Bool` — removes key; on failure sets
-    `saveError`, **retains** `hasExistingKey`/`maskedExisting` (a failed delete
-    must not flip the UI to 未配置) (audit-2 #4)
-  - `static func isValid(_:) -> Bool` — provider-compatible (audit-2 #5): after
-    trimming surrounding whitespace, the key must match
-    `^sk-[A-Za-z0-9_-]{13,197}$` — i.e. `sk-` prefix, **ASCII** alphanumeric +
-    `-`/`_` only (rejects emoji/CJK/control/internal whitespace), **total length
-    16–200** (3 prefix + 13..197 body) (audit-3 #3). Boundary tests at total
-    length 15 (reject), 16 (accept), 200 (accept), 201 (reject).
-  - `static func mask(_:) -> String?` — reveal `sk-…` + last 4 **only when total
+  - `@discardableResult func clear() -> Bool` — removes key; on failure sets the
+    clear-specific `errorMessage`, **retains** `hasExistingKey`/`maskedExisting`
+    (a failed delete must not flip the UI to 未配置) (audit-2 #4, audit-4)
+  - `static func isValid(_:) -> Bool` — **format-agnostic** (audit-4 #2: OpenAI
+    does not guarantee an `sk-` prefix or any fixed length — e.g. project keys are
+    `sk-proj-…`; future formats may differ). After trimming surrounding
+    whitespace, accept iff: non-empty, **no control chars or internal whitespace**,
+    all characters are **printable ASCII** (rejects emoji/CJK/garbage paste), and
+    length within a defensive **8…500** bound. No provider-shape assumption.
+    Boundary tests: empty (reject), 7 (reject), 8 (accept), 500 (accept), 501
+    (reject), internal space/newline (reject), emoji (reject).
+  - `static func mask(_:) -> String?` — reveal `…` + last 4 chars **only when
     length ≥ 12**; otherwise return `"已配置"` (never the whole secret) (audit-1 #4).
+    Format-agnostic (no `sk-` assumption).
   - Injected `APIKeyStoring` (mockable; `InMemoryAPIKeyStore` exists).
 - **NEW `vrecorder/Views/APIKeyEntryView.swift`** — light-scope sheet per
   `dev-docs/designs/api-key-entry/`. **Builds its own card/rows from `VR` tokens**
@@ -185,9 +195,9 @@ Keychain.
 ## Test catalogue (audit-1 #7)
 
 `vrecorderTests/APIKeyEntryModelTests.swift`:
-- `isValidRejectsEmptyWhitespaceAndShort` / `isValidRejectsNonSkPrefix`
-- `isValidRejectsInternalControlOrWhitespace`
-- `isValidAcceptsWellFormedSkKey`
+- `isValidRejectsEmptyAndTooShort` (len 7) / `isValidRejectsTooLong` (len 501)
+- `isValidRejectsInternalWhitespaceControlAndNonASCII` (emoji/CJK/newline)
+- `isValidAcceptsPlainKeyAndProjKey` (`sk-...` and `sk-proj-...` and a non-`sk` key)
 - `saveTrimsPersistsAndClearsDraft`
 - `saveGuardsOnValidity` (direct `save()` with invalid draft is a no-op, returns false)
 - `saveFailurePreservesPreviousKeyAndSetsError` (InMemory `failNextWrite`)
