@@ -168,6 +168,7 @@ final class LiveSessionModel {
         case PipelineError.micPermissionDenied:    return "需要麦克风权限，请在设置中开启"
         case PipelineError.speechPermissionDenied: return "需要语音识别权限，请在设置中开启"
         case PipelineError.missingAPIKey:          return "未配置 API 密钥"
+        case PipelineError.invalidAPIKey:          return "API 密钥无效或已失效，请在设置中更新"
         case PipelineError.recognizerUnavailable:  return "当前语言的语音识别不可用"
         case PipelineError.recognitionFailed:      return "语音识别失败，请重试"
         case PipelineError.providerError(let m):   return "翻译服务错误：\(m)"

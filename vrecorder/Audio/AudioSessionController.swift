@@ -16,49 +16,68 @@ final class AudioSessionController {
     }
 
     private let session = AVAudioSession.sharedInstance()
-    /// Set by the owner before `activate()`. Delivered on the main actor.
+    /// Set by the owner before `activate()`. Always delivered on the main actor.
     var onEvent: ((Event) -> Void)?
     private var active = false
+    private var tokens: [NSObjectProtocol] = []
 
     func activate() throws {
         try session.setCategory(.playAndRecord, mode: .measurement,
                                 options: [.duckOthers, .defaultToSpeaker])
         try session.setActive(true, options: .notifyOthersOnDeactivation)
         active = true
+
+        // Block observers pinned to .main: notifications post on arbitrary
+        // threads; routing them through the main queue keeps onEvent (which
+        // mutates @MainActor state) on the main actor (audit-G4r2 #1).
         let nc = NotificationCenter.default
-        nc.addObserver(self, selector: #selector(handleInterruption),
-                       name: AVAudioSession.interruptionNotification, object: session)
-        nc.addObserver(self, selector: #selector(handleRouteChange),
-                       name: AVAudioSession.routeChangeNotification, object: session)
+        tokens.append(nc.addObserver(forName: AVAudioSession.interruptionNotification,
+                                     object: session, queue: .main) { [weak self] note in
+            // Parse Sendable primitives here; only those cross the actor hop
+            // (Notification itself is non-Sendable).
+            let typeRaw = note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt
+            let optsRaw = note.userInfo?[AVAudioSessionInterruptionOptionKey] as? UInt
+            MainActor.assumeIsolated { self?.handleInterruption(typeRaw: typeRaw, optsRaw: optsRaw) }
+        })
+        tokens.append(nc.addObserver(forName: AVAudioSession.routeChangeNotification,
+                                     object: session, queue: .main) { [weak self] note in
+            let reasonRaw = note.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt
+            MainActor.assumeIsolated { self?.handleRouteChange(reasonRaw: reasonRaw) }
+        })
     }
 
-    /// Idempotent: safe to call on every termination path.
+    /// Idempotent: safe to call on every termination path. Marks inactive only
+    /// after a successful deactivation so a failure preserves retry (audit-G4r2 #3).
     func deactivate() {
-        NotificationCenter.default.removeObserver(self)
+        tokens.forEach { NotificationCenter.default.removeObserver($0) }
+        tokens.removeAll()
         guard active else { return }
-        active = false
-        try? session.setActive(false, options: .notifyOthersOnDeactivation)
+        do {
+            try session.setActive(false, options: .notifyOthersOnDeactivation)
+            active = false
+        } catch {
+            // Stay active so a later deactivate() retries; don't strand other
+            // apps ducked silently.
+            Log.audio.error("AVAudioSession deactivate failed: \(error.localizedDescription)")
+        }
     }
 
-    @objc private func handleInterruption(_ note: Notification) {
-        guard let raw = note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
-              let type = AVAudioSession.InterruptionType(rawValue: raw) else { return }
+    private func handleInterruption(typeRaw: UInt?, optsRaw: UInt?) {
+        guard let typeRaw, let type = AVAudioSession.InterruptionType(rawValue: typeRaw) else { return }
         switch type {
         case .began:
             onEvent?(.interruptionBegan)
         case .ended:
-            let opts = (note.userInfo?[AVAudioSessionInterruptionOptionKey] as? UInt).map {
-                AVAudioSession.InterruptionOptions(rawValue: $0)
-            } ?? []
+            let opts = optsRaw.map { AVAudioSession.InterruptionOptions(rawValue: $0) } ?? []
             onEvent?(.interruptionEnded(shouldResume: opts.contains(.shouldResume)))
         @unknown default:
             break
         }
     }
 
-    @objc private func handleRouteChange(_ note: Notification) {
-        guard let raw = note.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt,
-              let reason = AVAudioSession.RouteChangeReason(rawValue: raw) else { return }
+    private func handleRouteChange(reasonRaw: UInt?) {
+        guard let reasonRaw,
+              let reason = AVAudioSession.RouteChangeReason(rawValue: reasonRaw) else { return }
         if reason == .oldDeviceUnavailable { onEvent?(.routeLost) }
     }
 }

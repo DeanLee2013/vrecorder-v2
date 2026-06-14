@@ -32,23 +32,42 @@ struct OpenAITranslationEngine: TranslationEngine {
             guard let http = response as? HTTPURLResponse else { throw PipelineError.providerError("no response") }
             switch http.statusCode {
             case 200: return try Self.parse(data: data)
-            case 401: throw PipelineError.missingAPIKey
-            case 429: throw PipelineError.rateLimited
+            // A request only reaches here WITH a key, so 401 means the key is
+            // present but wrong/revoked (audit-G4 #4). 403 is access/permission —
+            // a distinct provider error, not necessarily a bad key (audit-G4r2 #4).
+            case 401: throw PipelineError.invalidAPIKey
+            case 403: throw PipelineError.providerError("forbidden (403)")
+            case 429: throw PipelineError.rateLimited      // rate or quota
             default:  throw PipelineError.providerError("HTTP \(http.statusCode)")
             }
         } catch let e as PipelineError {
             throw e
-        } catch let e as URLError where e.code == .timedOut {
-            throw PipelineError.timeout
-        } catch let e as URLError where e.code == .notConnectedToInternet || e.code == .networkConnectionLost {
-            throw PipelineError.offline
+        } catch let e as URLError {
+            switch e.code {
+            case .timedOut:
+                throw PipelineError.timeout
+            // Genuine connectivity loss → offline. TLS failures are NOT offline —
+            // they're a security/provider problem (audit-G4r2 #4).
+            case .notConnectedToInternet, .networkConnectionLost, .cannotConnectToHost,
+                 .cannotFindHost, .dnsLookupFailed, .internationalRoamingOff, .dataNotAllowed:
+                throw PipelineError.offline
+            case .secureConnectionFailed, .serverCertificateUntrusted,
+                 .serverCertificateHasBadDate, .clientCertificateRejected:
+                throw PipelineError.providerError("TLS: \(e.code.rawValue)")
+            default:
+                throw PipelineError.providerError("network: \(e.code.rawValue)")
+            }
         }
     }
 
     // MARK: - Pure helpers (unit-tested)
 
     static func makeRequest(text: String, target: Locale, model: String, apiKey: String) throws -> URLRequest {
-        let lang = target.language.languageCode?.identifier == "zh" ? "Chinese" : "English"
+        // Derive the actual target language name (audit-G4r2 #5: was silently
+        // "English" for every non-Chinese target). English display names give the
+        // model an unambiguous instruction.
+        let code = target.language.languageCode?.identifier ?? "en"
+        let lang = Locale(identifier: "en_US").localizedString(forLanguageCode: code) ?? "English"
         let body: [String: Any] = [
             "model": model,
             "temperature": 0.2,

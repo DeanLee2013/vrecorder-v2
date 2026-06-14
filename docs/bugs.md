@@ -44,7 +44,26 @@ Track bugs here. Tell the agent "fix bug #N" to start a fix.
 - `DUPLICATE` — duplicate of another bug; note `DUPLICATE OF #N`
 - `WONT FIX` — intentional behavior or out of scope
 
+## Bugs (summary)
+
+| # | Summary | File/Area | Severity | Status | Notes |
+|---|---------|-----------|----------|--------|-------|
+| 1 | VAD rotation truncates the start of the next utterance | `AudioTapBridge` / `AppleSpeechRecognizer` | High | TODO | Surfaced by feature-#2 Gate-4 audit (prepush-64afb36); pre-existing feature-#1 pipeline residual on main. Bridge nulls the request at `endAudio()` but the new request installs only after the async final callback — audio in that gap is dropped. Fix: segment-ID parallel rotation or a bounded PCM rollover buffer. Demo uses the simulator/scripted path, so demo unaffected. Mirror: no. |
+| 2 | Unbounded partial-result stream + per-callback Task accumulation | `AppleSpeechRecognizer` | Medium | TODO | Same audit; long live sessions can accumulate partials/tasks. Fix: bounded event pump that coalesces partials, preserves finals. Mirror: no. |
+
+> Interruption auto-resume (related Gate-4 Medium) is tracked as **feature #3**, not a bug.
+
 ## Open Bug Details
+
+### Bug #1 — VAD rotation truncates next utterance
+Repro: continuous real-mic speech with brief pauses. Expected: each utterance
+recognized whole. Actual: the first audio after a pause can be dropped during the
+request-rotation gap, fragmenting the next utterance. (Real-mic only; the demo
+simulator path doesn't exercise the recognizer.)
+
+### Bug #2 — Unbounded partial stream
+Repro: very long live session with a slow consumer. Expected: bounded memory.
+Actual: partial events + main-actor Tasks can accumulate without bound.
 
 <!-- For each TODO/IN PROGRESS/REOPENED bug, add a short entry here.
      Max 6 lines per bug: repro, expected, actual. Remove on FIXED (move to archive). -->

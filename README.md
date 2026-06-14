@@ -55,7 +55,8 @@ dev-docs/
 ## How to drive it
 See the cold-start tutorial: `dev-docs/冷启动手册-小白版-从初始化到无人值守.html`.
 
-Status: **M1** — MVP scaffold landed (feature #1): design-faithful LiveScreen /
+Status: **M1** — MVP scaffold (feature #1): design-faithful LiveScreen /
 SettingsScreen, on-device STT + OpenAI translation behind protocols, Keychain
-key, demo-simulator fallback. 9 unit tests green; live translation verified.
+key, demo-simulator fallback. Plus feature #2: in-app OpenAI key configuration
+(Settings › API 密钥) with an atomic Keychain write. 31 unit tests green.
 Next: Stage 3 (settings persistence, TTS) through the full 6-gate flow.

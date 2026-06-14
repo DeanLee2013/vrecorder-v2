@@ -52,7 +52,7 @@ Before setting a feature to `PLANNED`, fill in these fields in a sub-section und
 | #   | Summary | Area | Priority | Status | Notes |
 | --- | ------- | ---- | -------- | ------ | ----- |
 | 1   | MVP 同传管线骨架（同传屏/设置屏 + 本地STT + OpenAI翻译 + Keychain key） | pipeline/ui | High | DONE | Scaffold, retro-registered outside gates 1-2 (course demo). Mirror: no. Pipeline-translate leg verified against live OpenAI; on-device STT needs device verify (Gate 5 deferred). Pre-push Codex audit (prepush-25e2320) found 6H+2M; fixes #3-8 + #1 applied (see Notes). |
-| 2   | Release 内 API 密钥录入页（Keychain 编辑器） | ui/settings | Medium | TODO | BLOCKED: needs-design. From audit #2: Release 无 config 文件，密钥行不能只读硬编码；需密钥录入界面，但设计稿未覆盖该页（rule 51）。DEBUG 走 config seed 不受影响。Mirror: no. |
+| 2   | Release 内 API 密钥录入页（Keychain 编辑器） | ui/settings | Medium | IN PROGRESS | Plan `dev-docs/plans/20260614-feature-2-api-key-entry.md` (r5, 4 Codex audit rounds, converged). Design bundle committed `dev-docs/designs/api-key-entry/` (owner-authorized, rule 51 satisfied). Mirror: no. |
 | 3   | 打断后自动暂停/恢复（来电/Siri/AirPods 后续传） | audio/pipeline | Low | TODO | From audit-3 #5 (Medium, non-blocking): 当前打断即 stop()，需重新点麦克风。理想是 paused 态保留观察、interruption-ended `shouldResume` 时自动恢复。演示影响小。Mirror: no. |
 
 ### Feature #1 — Notes (retro)
