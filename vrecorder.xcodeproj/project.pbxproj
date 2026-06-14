@@ -13,6 +13,7 @@
 		1E2FA3E3402D93F7295EE1E1 /* TranscriptLine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A38BB4F410E3538C2A70E55 /* TranscriptLine.swift */; };
 		20E27889D547272E1C711F9B /* APIKeyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 492B2AC9759DD274F56F3863 /* APIKeyStore.swift */; };
 		28A544644582FCA11AEAA49B /* StreamingEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145131E582871C3D4CF07B29 /* StreamingEvents.swift */; };
+		28ADC2D9BDE83B71D92E8621 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E7CF138DC442B4208C38FE1 /* Log.swift */; };
 		32C1620AB7DE6322A90A5E0B /* APIKeyEntryModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C56144063123BBAD9578F36 /* APIKeyEntryModelTests.swift */; };
 		3970803AD402C4B9A76E75D7 /* APIKeyEntryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2A1B2B5015586830A3D15DD /* APIKeyEntryModel.swift */; };
 		424AD21D910E83AF9D42F5F9 /* AppleSpeechRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C923BA1FFC84279540C7315A /* AppleSpeechRecognizer.swift */; };
@@ -62,6 +63,7 @@
 		359E6691AB17E0E457612AEC /* PipelineFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineFlowTests.swift; sourceTree = "<group>"; };
 		43DCE3891E67B759EE664E94 /* LiveSessionModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSessionModel.swift; sourceTree = "<group>"; };
 		492B2AC9759DD274F56F3863 /* APIKeyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeyStore.swift; sourceTree = "<group>"; };
+		4E7CF138DC442B4208C38FE1 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		56738A58924D6D1A8F9258C9 /* APIKeyBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeyBootstrap.swift; sourceTree = "<group>"; };
 		5CB9E1B6BC81BE95091BFCC7 /* KeychainAPIKeyStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainAPIKeyStoreTests.swift; sourceTree = "<group>"; };
 		6A1A3B4A4BF1AE9F6EE8162E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -201,6 +203,7 @@
 			isa = PBXGroup;
 			children = (
 				2905A2BA04101E59D2997B63 /* AppEnvironment.swift */,
+				4E7CF138DC442B4208C38FE1 /* Log.swift */,
 				F7C85BC02C7E59A61FF20E58 /* RootView.swift */,
 				E50D83948BB6C00E64B1BEE5 /* VRecorderApp.swift */,
 			);
@@ -334,6 +337,7 @@
 				B93F0F125810C06C0DCAAD8D /* LiveBadge.swift in Sources */,
 				993DB1495E915AA8AB0F1ED5 /* LiveScreen.swift in Sources */,
 				9B009850D59563F3242DFAEF /* LiveSessionModel.swift in Sources */,
+				28ADC2D9BDE83B71D92E8621 /* Log.swift in Sources */,
 				C1D1527BEBB36F6CD62688DC /* MicButton.swift in Sources */,
 				5650104E755B1DBE1F6F3728 /* OpenAITranslationEngine.swift in Sources */,
 				9A62D41249B504EA13BE46BA /* Palette.swift in Sources */,
